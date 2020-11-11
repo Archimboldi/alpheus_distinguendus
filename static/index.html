@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西安天信达软件有限公司</title>
+    <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon">
+    <script src="./lib/layui/layui.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="./lib/layui/css/layui.css"  media="all">
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+<body>
+    <div class="top">
+        <img src="./images/logo.png" alt="西安天信达软件" style="height: 47px; margin: 21px 47px 7px 45px;">
+    </div>
+    <div class="layui-tab" style="min-height: 700px;">
+        <ul class="layui-tab-title">
+          <li class="layui-this">首页</li>
+          <li>走进天信达</li>
+          <li>主营业务</li>
+          <li>软件服务</li>
+          <li>标准流程</li>
+          <li>招贤纳士</li>
+          <li>联系我们</li>
+          <li>相关下载</li>
+        </ul>
+        <div class="layui-tab-content">
+          <div class="layui-tab-item layui-show" id="syv"></div>
+          <div class="layui-tab-item" id="zjv"></div>
+          <div class="layui-tab-item" id="ywv"></div>
+          <div class="layui-tab-item" id="rjv"></div>
+          <div class="layui-tab-item" id="lcv"></div>
+          <div class="layui-tab-item" id="zpv"></div>
+          <div class="layui-tab-item" id="lxv"></div>
+          <div class="layui-tab-item" id="xzv"></div>
+        </div>
+    </div>
+    <footer>
+        &copy;2020 版权所有
+        <a href="#">西安天信达软件</a>
+        <a href="http://beian.miit.gov.cn/">备案号</a>
+    </footer>
+    <script id="syd" type="text/html">
+        <div class="layui-carousel" id="test10">
+            <div carousel-item="">
+                <div><img src="./images/favicon.png"></div>
+                <div><img src="./images/logo.png"></div>
+                <div><img src="//res.layui.com/images/layui/demo/3.png"></div>
+                <div><img src="//res.layui.com/images/layui/demo/4.png"></div>
+                <div><img src="//res.layui.com/images/layui/demo/5.png"></div>
+                <div><img src="//res.layui.com/images/layui/demo/6.png"></div>
+                <div><img src="//res.layui.com/images/layui/demo/7.png"></div>
+            </div>
+        </div>
+    </script>
+    <script id="zjd" type="text/html">
+        <h3>走进天信达</h3>
+    </script>
+    <script id="ywd" type="text/html">
+        <h3>主营业务</h3>
+    </script>
+    <script id="rjd" type="text/html">
+        <h3>软件服务</h3>
+    </script>
+    <script id="lcd" type="text/html">
+        <h3>标准流程</h3>
+    </script>
+    <script id="zpd" type="text/html">
+        <h3>招贤纳士</h3>
+    </script>
+    <script id="lxd" type="text/html">
+        <h3>联系我们</h3>
+    </script>
+    <script id="xzd" type="text/html">
+        <h3>相关下载</h3>
+    </script>
+    <script>
+        data = [];
+        layui.use(['element', 'laytpl', 'carousel', 'form'], function(){
+            var $ = layui.jquery
+            ,element = layui.element
+            ,laytpl = layui.laytpl
+            ,carousel = layui.carousel
+            ,form = layui.form;
+
+            carousel.render({
+                elem: '#test10'
+                ,width: '778px'
+                ,height: '440px'
+                ,interval: 5000
+            });
+
+            var getTpl = syd.innerHTML
+            ,syv = document.getElementById('syv');
+            laytpl(getTpl).render(data, function(html){
+                syv.innerHTML = html;
+            });
+            var getTpl = zjd.innerHTML
+            ,zjv = document.getElementById('zjv');
+            laytpl(getTpl).render(data, function(html){
+                zjv.innerHTML = html;
+            });
+            var getTpl = ywd.innerHTML
+            ,ywv = document.getElementById('ywv');
+            laytpl(getTpl).render(data, function(html){
+                ywv.innerHTML = html;
+            });
+            var getTpl = rjd.innerHTML
+            ,rjv = document.getElementById('rjv');
+            laytpl(getTpl).render(data, function(html){
+                rjv.innerHTML = html;
+            });
+            var getTpl = lcd.innerHTML
+            ,lcv = document.getElementById('lcv');
+            laytpl(getTpl).render(data, function(html){
+                lcv.innerHTML = html;
+            });
+            var getTpl = zpd.innerHTML
+            ,zpv = document.getElementById('zpv');
+            laytpl(getTpl).render(data, function(html){
+                zpv.innerHTML = html;
+            });
+            var getTpl = lxd.innerHTML
+            ,lxv = document.getElementById('lxv');
+            laytpl(getTpl).render(data, function(html){
+                lxv.innerHTML = html;
+            });
+            var getTpl = xzd.innerHTML
+            ,xzv = document.getElementById('xzv');
+            laytpl(getTpl).render(data, function(html){
+                xzv.innerHTML = html;
+            });
+        })
+    </script>
+</body>
+</html>
