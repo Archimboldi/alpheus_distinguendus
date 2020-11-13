@@ -46,7 +46,7 @@ pub struct SimpleBroker<T>(PhantomData<T>);
 
 impl<T: Sync + Send + Clone + 'static> SimpleBroker<T> {
     /// Publish a message that all subscription streams can receive.
-    pub fn publish(msg: T) {
+    pub fn _publish(msg: T) {
         with_senders::<T, _, _>(|senders| {
             for (_, sender) in senders.0.iter_mut() {
                 sender.start_send(msg.clone()).ok();

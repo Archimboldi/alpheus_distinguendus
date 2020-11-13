@@ -5,7 +5,7 @@ use async_graphql::Schema;
 
 use async_graphql_actix_web::{Request, Response, WSSubscription};
 mod books;
-use books::{BooksSchema, QueryRoot, MutationRoot, SubscriptionRoot};
+use books::shebei::{BooksSchema, QueryRoot, MutationRoot, SubscriptionRoot};
 use sqlx::SqlitePool;
 use anyhow::Result;
 use dotenv::dotenv;
