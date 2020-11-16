@@ -1,8 +1,9 @@
-use actix_web::{guard, web, App, HttpRequest, HttpResponse, HttpServer, Error};
+use actix_web::{guard, web, App, HttpRequest, HttpResponse, HttpServer, Error, http};
 use actix_web_actors::ws;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql::Schema;
-
+use actix_files as fs;
+use actix_cors::Cors;
 use async_graphql_actix_web::{Request, Response, WSSubscription};
 mod books;
 use books::shebei::{BooksSchema, QueryRoot, MutationRoot, SubscriptionRoot};
@@ -18,7 +19,7 @@ async fn index_playground() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(playground_source(
-            GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+            GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/"),
         )))
 }
 
@@ -46,19 +47,28 @@ async fn main() -> Result<()> {
     let schema = Schema::build(QueryRoot, MutationRoot, SubscriptionRoot)
         .data(db_pool)
         .finish();
-    println!("Playground: http://localhost:8000");
+    println!("Playground: http://localhost:8000/graphql");
 
     let serv = HttpServer::new(move || {
         App::new()
             .data(schema.clone())
-            .service(web::resource("/").guard(guard::Post()).to(index))
+            .wrap(
+            Cors::default()
+                .allowed_origin("http://localhost:3000")
+                .allowed_origin("http://localhost:8000")
+                .allowed_header(http::header::CONTENT_TYPE)
+                .allowed_methods(vec!["GET", "POST"])
+                .max_age(3600)
+            )
+            .service(web::resource("/graphql").guard(guard::Post()).to(index))
             .service(
-                web::resource("/")
+                web::resource("/graphql")
                     .guard(guard::Get())
                     .guard(guard::Header("upgrade", "websocket"))
                         .to(index_ws),
             )
-            .service(web::resource("/").guard(guard::Get()).to(index_playground))
+            // .service(web::resource("/graphql").guard(guard::Get()).to(index_playground))
+            .service(fs::Files::new("/","./app/build", ).index_file("index.html"))
     })
     .bind("127.0.0.1:8000")?;
     serv.run().await?;
