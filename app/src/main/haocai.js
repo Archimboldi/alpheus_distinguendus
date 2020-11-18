@@ -5,16 +5,14 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 const EXCHANGE_RATES = gql`
-  query {shebeis {
-    zcbh,
-    szbm,
-    szxm,
-    sblx,
-    sbpp,
-    sbxh,
-    smcs,
-    sbbz,
-    xlh
+  query {haocais {
+    hcmc,
+    gg,
+    sl,
+    dw,
+    lj,
+    hcbz,
+    hcdj
   }}
 `;
 
@@ -60,40 +58,32 @@ class PaginationTable extends React.Component {
           console.log(data);
         }}>
           <Column width={100} align="center" fixed>
-                <HeaderCell>资产编号</HeaderCell>
-                <Cell dataKey="zcbh" />    
+                <HeaderCell>耗材名称</HeaderCell>
+                <Cell dataKey="hcmc" />    
             </Column>
             <Column width={100} fixed>
-                <HeaderCell>所在部门</HeaderCell>
-                <Cell dataKey="szbm" />    
+                <HeaderCell>规格</HeaderCell>
+                <Cell dataKey="gg" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>所在项目</HeaderCell>
-                <Cell dataKey="szxm" />    
+                <HeaderCell>数量</HeaderCell>
+                <Cell dataKey="sl" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备类型</HeaderCell>
-                <Cell dataKey="sblx" />    
+                <HeaderCell>单位</HeaderCell>
+                <Cell dataKey="dw" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备品牌</HeaderCell>
-                <Cell dataKey="sbpp" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>设备型号</HeaderCell>
-                <Cell dataKey="sbxh" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>序列号</HeaderCell>
-                <Cell dataKey="xlh" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>扫描次数</HeaderCell>
-                <Cell dataKey="smcs" />    
+                <HeaderCell>链接</HeaderCell>
+                <Cell dataKey="lj" />    
             </Column>
             <Column width={100} >
                 <HeaderCell>备注</HeaderCell>
-                <Cell dataKey="sbbz" />    
+                <Cell dataKey="hcbz" />    
+            </Column>
+            <Column width={100} >
+                <HeaderCell>单价</HeaderCell>
+                <Cell dataKey="hcdj" />    
             </Column>
           </Table>
           <Table.Pagination
@@ -136,7 +126,7 @@ function Shebei() {
     if (error) return <p>Error :(</p>;
 
     return(
-    <div><PaginationTable data={data.shebeis} /></div>
+    <div><PaginationTable data={data.haocais} /></div>
     )
 
 }

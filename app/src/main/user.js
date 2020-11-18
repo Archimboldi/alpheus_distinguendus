@@ -5,16 +5,11 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 const EXCHANGE_RATES = gql`
-  query {shebeis {
-    zcbh,
-    szbm,
-    szxm,
-    sblx,
-    sbpp,
-    sbxh,
-    smcs,
-    sbbz,
-    xlh
+  query {users {
+    uid,
+    usrn,
+    upsd,
+    power
   }}
 `;
 
@@ -60,40 +55,20 @@ class PaginationTable extends React.Component {
           console.log(data);
         }}>
           <Column width={100} align="center" fixed>
-                <HeaderCell>资产编号</HeaderCell>
-                <Cell dataKey="zcbh" />    
+                <HeaderCell>ID</HeaderCell>
+                <Cell dataKey="uid" />    
             </Column>
             <Column width={100} fixed>
-                <HeaderCell>所在部门</HeaderCell>
-                <Cell dataKey="szbm" />    
+                <HeaderCell>用户名</HeaderCell>
+                <Cell dataKey="usrn" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>所在项目</HeaderCell>
-                <Cell dataKey="szxm" />    
+                <HeaderCell>密码</HeaderCell>
+                <Cell dataKey="upsd" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备类型</HeaderCell>
-                <Cell dataKey="sblx" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>设备品牌</HeaderCell>
-                <Cell dataKey="sbpp" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>设备型号</HeaderCell>
-                <Cell dataKey="sbxh" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>序列号</HeaderCell>
-                <Cell dataKey="xlh" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>扫描次数</HeaderCell>
-                <Cell dataKey="smcs" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>备注</HeaderCell>
-                <Cell dataKey="sbbz" />    
+                <HeaderCell>权限</HeaderCell>
+                <Cell dataKey="power" />    
             </Column>
           </Table>
           <Table.Pagination
@@ -136,7 +111,7 @@ function Shebei() {
     if (error) return <p>Error :(</p>;
 
     return(
-    <div><PaginationTable data={data.shebeis} /></div>
+    <div><PaginationTable data={data.users} /></div>
     )
 
 }

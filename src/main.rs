@@ -1,15 +1,16 @@
 use actix_web::{guard, web, App, HttpRequest, HttpResponse, HttpServer, Error, http};
 use actix_web_actors::ws;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::Schema;
+use async_graphql::{Schema, EmptySubscription};
 use actix_files as fs;
 use actix_cors::Cors;
 use async_graphql_actix_web::{Request, Response, WSSubscription};
 mod books;
-use books::shebei::{BooksSchema, QueryRoot, MutationRoot, SubscriptionRoot};
+use books::{shebei, xiangmu, kehu, yuangong, haocai, rizhi, user};
 use sqlx::SqlitePool;
 use anyhow::Result;
 use dotenv::dotenv;
+use books::{BooksSchema, QueryRoot, Mutation};
 
 async fn index(schema: web::Data<BooksSchema>, req: Request) -> Response {
     schema.execute(req.into_inner()).await.into()
@@ -43,8 +44,9 @@ async fn main() -> Result<()> {
     dotenv().ok();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is not set.");
     let db_pool = SqlitePool::new(&database_url).await?;
-
-    let schema = Schema::build(QueryRoot, MutationRoot, SubscriptionRoot)
+    let queryroot = QueryRoot(xiangmu::XmQuery, shebei::SbQuery, kehu::KhQuery, yuangong::YgQuery, haocai::HcQuery, rizhi::RzQuery, user::UQuery);
+    let mutationroot = Mutation(xiangmu::XmMutation, shebei::SbMutation, kehu::KhMutation, yuangong::YgMutation, haocai::HcMutation, rizhi::RzMutation, user::UMutation);
+    let schema = Schema::build(queryroot, mutationroot, EmptySubscription)
         .data(db_pool)
         .finish();
     println!("Playground: http://localhost:8000/graphql");
@@ -67,7 +69,7 @@ async fn main() -> Result<()> {
                     .guard(guard::Header("upgrade", "websocket"))
                         .to(index_ws),
             )
-            // .service(web::resource("/graphql").guard(guard::Get()).to(index_playground))
+            .service(web::resource("/graphql").guard(guard::Get()).to(index_playground))
             .service(fs::Files::new("/","./app/build", ).index_file("index.html"))
     })
     .bind("127.0.0.1:8000")?;

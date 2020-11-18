@@ -5,16 +5,18 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 const EXCHANGE_RATES = gql`
-  query {shebeis {
-    zcbh,
-    szbm,
-    szxm,
-    sblx,
-    sbpp,
-    sbxh,
-    smcs,
-    sbbz,
-    xlh
+  query {xiangmus {
+    xmbh,
+    xmmc,
+    xmfzr,
+    xmlx,
+    gclzl,
+    gcllr,
+    gclsm,
+    gclcl,
+    xmdd,
+    xmbz,
+    xmhth
   }}
 `;
 
@@ -60,40 +62,48 @@ class PaginationTable extends React.Component {
           console.log(data);
         }}>
           <Column width={100} align="center" fixed>
-                <HeaderCell>资产编号</HeaderCell>
-                <Cell dataKey="zcbh" />    
+                <HeaderCell>项目编号</HeaderCell>
+                <Cell dataKey="xmbh" />    
             </Column>
             <Column width={100} fixed>
-                <HeaderCell>所在部门</HeaderCell>
-                <Cell dataKey="szbm" />    
+                <HeaderCell>项目名称</HeaderCell>
+                <Cell dataKey="xmmc" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>所在项目</HeaderCell>
-                <Cell dataKey="szxm" />    
+                <HeaderCell>项目负责人</HeaderCell>
+                <Cell dataKey="xmfzr" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备类型</HeaderCell>
-                <Cell dataKey="sblx" />    
+                <HeaderCell>项目类型</HeaderCell>
+                <Cell dataKey="xmlx" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备品牌</HeaderCell>
-                <Cell dataKey="sbpp" />    
+                <HeaderCell>工程量（整理）</HeaderCell>
+                <Cell dataKey="gclzl" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备型号</HeaderCell>
-                <Cell dataKey="sbxh" />    
+                <HeaderCell>工程量（录入）</HeaderCell>
+                <Cell dataKey="gcllr" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>序列号</HeaderCell>
-                <Cell dataKey="xlh" />    
+                <HeaderCell>工程量（扫描）</HeaderCell>
+                <Cell dataKey="gclsm" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>扫描次数</HeaderCell>
-                <Cell dataKey="smcs" />    
+                <HeaderCell>工程量（处理）</HeaderCell>
+                <Cell dataKey="gclcl" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>备注</HeaderCell>
-                <Cell dataKey="sbbz" />    
+                <HeaderCell>项目地点</HeaderCell>
+                <Cell dataKey="xmdd" />    
+            </Column>
+            <Column width={100} >
+                <HeaderCell>项目备注</HeaderCell>
+                <Cell dataKey="xmbz" />    
+            </Column>
+            <Column width={100} >
+                <HeaderCell>合同号</HeaderCell>
+                <Cell dataKey="xmhth" />    
             </Column>
           </Table>
           <Table.Pagination
@@ -136,7 +146,7 @@ function Shebei() {
     if (error) return <p>Error :(</p>;
 
     return(
-    <div><PaginationTable data={data.shebeis} /></div>
+    <div><PaginationTable data={data.xiangmus} /></div>
     )
 
 }

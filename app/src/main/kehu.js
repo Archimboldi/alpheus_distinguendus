@@ -5,16 +5,14 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 const EXCHANGE_RATES = gql`
-  query {shebeis {
-    zcbh,
-    szbm,
-    szxm,
-    sblx,
-    sbpp,
-    sbxh,
-    smcs,
-    sbbz,
-    xlh
+  query {kehus {
+    khbh,
+    khxm,
+    ssxm,
+    khxb,
+    khgx,
+    khbz,
+    khlx
   }}
 `;
 
@@ -60,41 +58,34 @@ class PaginationTable extends React.Component {
           console.log(data);
         }}>
           <Column width={100} align="center" fixed>
-                <HeaderCell>资产编号</HeaderCell>
-                <Cell dataKey="zcbh" />    
+                <HeaderCell>客户编号</HeaderCell>
+                <Cell dataKey="khbh" />    
             </Column>
             <Column width={100} fixed>
-                <HeaderCell>所在部门</HeaderCell>
-                <Cell dataKey="szbm" />    
+                <HeaderCell>客户姓名</HeaderCell>
+                <Cell dataKey="khxm" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>所在项目</HeaderCell>
-                <Cell dataKey="szxm" />    
+                <HeaderCell>所属项目</HeaderCell>
+                <Cell dataKey="ssxm" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备类型</HeaderCell>
-                <Cell dataKey="sblx" />    
+                <HeaderCell>客户性别</HeaderCell>
+                <Cell dataKey="khxb" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备品牌</HeaderCell>
-                <Cell dataKey="sbpp" />    
+                <HeaderCell>客户关系</HeaderCell>
+                <Cell dataKey="khgx" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备型号</HeaderCell>
-                <Cell dataKey="sbxh" />    
+                <HeaderCell>客户备注</HeaderCell>
+                <Cell dataKey="khbz" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>序列号</HeaderCell>
-                <Cell dataKey="xlh" />    
+                <HeaderCell>联系方式</HeaderCell>
+                <Cell dataKey="khlx" />    
             </Column>
-            <Column width={100} >
-                <HeaderCell>扫描次数</HeaderCell>
-                <Cell dataKey="smcs" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>备注</HeaderCell>
-                <Cell dataKey="sbbz" />    
-            </Column>
+            
           </Table>
           <Table.Pagination
             lengthMenu={[
@@ -136,7 +127,7 @@ function Shebei() {
     if (error) return <p>Error :(</p>;
 
     return(
-    <div><PaginationTable data={data.shebeis} /></div>
+    <div><PaginationTable data={data.kehus} /></div>
     )
 
 }

@@ -5,16 +5,17 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 const EXCHANGE_RATES = gql`
-  query {shebeis {
-    zcbh,
-    szbm,
+  query {yuangongs {
+    ygxm,
+    ssbm,
     szxm,
-    sblx,
-    sbpp,
-    sbxh,
-    smcs,
-    sbbz,
-    xlh
+    ygjn,
+    rzsj,
+    rgzl,
+    ygzl,
+    ljgzl,
+    ygbz,
+    sfzh
   }}
 `;
 
@@ -60,40 +61,44 @@ class PaginationTable extends React.Component {
           console.log(data);
         }}>
           <Column width={100} align="center" fixed>
-                <HeaderCell>资产编号</HeaderCell>
-                <Cell dataKey="zcbh" />    
+                <HeaderCell>员工姓名</HeaderCell>
+                <Cell dataKey="ygxm" />    
             </Column>
             <Column width={100} fixed>
-                <HeaderCell>所在部门</HeaderCell>
-                <Cell dataKey="szbm" />    
+                <HeaderCell>所属部门</HeaderCell>
+                <Cell dataKey="ssbm" />    
             </Column>
             <Column width={100} >
                 <HeaderCell>所在项目</HeaderCell>
                 <Cell dataKey="szxm" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备类型</HeaderCell>
-                <Cell dataKey="sblx" />    
+                <HeaderCell>员工技能</HeaderCell>
+                <Cell dataKey="ygjn" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备品牌</HeaderCell>
-                <Cell dataKey="sbpp" />    
+                <HeaderCell>入职时间</HeaderCell>
+                <Cell dataKey="rzsj" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>设备型号</HeaderCell>
-                <Cell dataKey="sbxh" />    
+                <HeaderCell>日工作量</HeaderCell>
+                <Cell dataKey="rgzl" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>序列号</HeaderCell>
-                <Cell dataKey="xlh" />    
+                <HeaderCell>月工作量</HeaderCell>
+                <Cell dataKey="ygzl" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>扫描次数</HeaderCell>
-                <Cell dataKey="smcs" />    
+                <HeaderCell>累计工作量</HeaderCell>
+                <Cell dataKey="ljgzl" />    
             </Column>
             <Column width={100} >
-                <HeaderCell>备注</HeaderCell>
-                <Cell dataKey="sbbz" />    
+                <HeaderCell>员工备注</HeaderCell>
+                <Cell dataKey="ygbz" />    
+            </Column>
+            <Column width={100} >
+                <HeaderCell>身份证号</HeaderCell>
+                <Cell dataKey="sfzh" />    
             </Column>
           </Table>
           <Table.Pagination
@@ -136,7 +141,7 @@ function Shebei() {
     if (error) return <p>Error :(</p>;
 
     return(
-    <div><PaginationTable data={data.shebeis} /></div>
+    <div><PaginationTable data={data.yuangongs} /></div>
     )
 
 }

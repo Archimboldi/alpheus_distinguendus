@@ -1,10 +1,8 @@
-use async_graphql::{Context, Enum, Object, Schema, Subscription, Result};
+use async_graphql::{Context, Enum, Object, Subscription, Result};
 use futures::{Stream, StreamExt};
 use super::simple_broker::SimpleBroker;
 use std::time::Duration;
 use sqlx::SqlitePool;
-
-pub type BooksSchema = Schema<QueryRoot, MutationRoot, SubscriptionRoot>;
 
 #[derive(Clone)]
 pub struct Shebei {
@@ -14,9 +12,9 @@ pub struct Shebei {
     pub sblx: Option<String>,
     pub sbpp: Option<String>,
     pub sbxh: Option<String>,
-    pub xlh: Option<String>,
     pub smcs: Option<String>,
-    pub sbbz: Option<String>
+    pub sbbz: Option<String>,
+    pub xlh: Option<String>
 }
 
 #[Object]
@@ -50,10 +48,11 @@ impl Shebei {
     }
 }
 
-pub struct QueryRoot;
+
+pub struct SbQuery;
 
 #[Object]
-impl QueryRoot {
+impl SbQuery {
     async fn shebeis(&self, ctx: &Context<'_>) -> Result<Vec<Shebei>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let recs = sqlx::query!(
@@ -112,10 +111,10 @@ impl QueryRoot {
 
 }
 
-pub struct MutationRoot;
+pub struct SbMutation;
 
 #[Object]
-impl MutationRoot {
+impl SbMutation {
     async fn create_shebei(&self, ctx: &Context<'_>, zcbh: String, szbm: Option<String>, szxm: Option<String>, sblx: Option<String>,
      sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<bool> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
@@ -209,10 +208,10 @@ impl BookChanged {
 
 }
 
-pub struct SubscriptionRoot;
+pub struct SbSubscription;
 
 #[Subscription]
-impl SubscriptionRoot {
+impl SbSubscription {
     async fn interval(&self, #[graphql(default = 1)] n: i32) -> impl Stream<Item = i32> {
         let mut value = 0;
         tokio::time::interval(Duration::from_secs(1)).map(move |_| {
