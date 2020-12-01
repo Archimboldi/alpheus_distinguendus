@@ -48,7 +48,7 @@ class Demo extends React.Component {
             defaultOpenKeys={['3', '4']}
             activeKey={this.state.activeKey}
             onSelect={this.handleSelect}
-            style={{ width: 140 }}
+            style={{ width: "10%" }}
             id="div1"
           >
             <Sidenav.Body>

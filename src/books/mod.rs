@@ -7,14 +7,15 @@ pub mod haocai;
 pub mod rizhi;
 pub mod user;
 pub mod simple_broker;
+pub mod file;
 
 #[derive(MergedObject)]
 pub struct QueryRoot(pub xiangmu::XmQuery, pub shebei::SbQuery, pub kehu::KhQuery,
-    pub yuangong::YgQuery, pub haocai::HcQuery, pub rizhi::RzQuery, pub user::UQuery);
+    pub yuangong::YgQuery, pub haocai::HcQuery, pub rizhi::RzQuery, pub user::UQuery, pub file::FileQuery);
 
 #[derive(MergedObject)]
 pub struct Mutation(pub xiangmu::XmMutation, pub shebei::SbMutation, pub kehu::KhMutation,
-    pub yuangong::YgMutation, pub haocai::HcMutation, pub rizhi::RzMutation, pub user::UMutation);
+    pub yuangong::YgMutation, pub haocai::HcMutation, pub rizhi::RzMutation, pub user::UMutation, pub file::FileMutation);
 
 // #[derive(MergedSubscription)]
 // pub struct Subscription(xiangmu::XmSubscription, shebei::SbSubscription);

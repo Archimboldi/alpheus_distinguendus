@@ -50,7 +50,7 @@ class PaginationTable extends React.Component {
     const { loading, displayLength, page } = this.state;
 
       return (
-        <div style={{display:"inline-block", width:"900px"}}>
+        <div style={{display:"inline-block", width:"90%"}}>
           <Table height={420} data={data} loading={loading} onRowClick={data => {
           console.log(data);
         }}>
@@ -80,10 +80,6 @@ class PaginationTable extends React.Component {
               {
                 value: 20,
                 label: 20
-              },
-              {
-                value: 30,
-                label: 30
               },
               {
                 value: 50,

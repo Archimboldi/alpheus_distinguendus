@@ -57,7 +57,7 @@ class PaginationTable extends React.Component {
     const { loading, displayLength, page } = this.state;
 
       return (
-        <div style={{display:"inline-block", width:"900px"}}>
+        <div style={{display:"inline-block", width:"90%"}}>
           <Table height={420} data={data} loading={loading} onRowClick={data => {
           console.log(data);
         }}>
@@ -77,19 +77,19 @@ class PaginationTable extends React.Component {
                 <HeaderCell>项目类型</HeaderCell>
                 <Cell dataKey="xmlx" />    
             </Column>
-            <Column width={100} >
+            <Column width={140} >
                 <HeaderCell>工程量（整理）</HeaderCell>
                 <Cell dataKey="gclzl" />    
             </Column>
-            <Column width={100} >
+            <Column width={140} >
                 <HeaderCell>工程量（录入）</HeaderCell>
                 <Cell dataKey="gcllr" />    
             </Column>
-            <Column width={100} >
+            <Column width={140} >
                 <HeaderCell>工程量（扫描）</HeaderCell>
                 <Cell dataKey="gclsm" />    
             </Column>
-            <Column width={100} >
+            <Column width={140} >
                 <HeaderCell>工程量（处理）</HeaderCell>
                 <Cell dataKey="gclcl" />    
             </Column>
@@ -115,10 +115,6 @@ class PaginationTable extends React.Component {
               {
                 value: 20,
                 label: 20
-              },
-              {
-                value: 30,
-                label: 30
               },
               {
                 value: 50,

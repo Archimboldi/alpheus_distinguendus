@@ -6,7 +6,7 @@ use actix_files as fs;
 use actix_cors::Cors;
 use async_graphql_actix_web::{Request, Response, WSSubscription};
 mod books;
-use books::{shebei, xiangmu, kehu, yuangong, haocai, rizhi, user};
+use books::{shebei, xiangmu, kehu, yuangong, haocai, rizhi, user, file};
 use sqlx::SqlitePool;
 use anyhow::Result;
 use dotenv::dotenv;
@@ -44,8 +44,8 @@ async fn main() -> Result<()> {
     dotenv().ok();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is not set.");
     let db_pool = SqlitePool::new(&database_url).await?;
-    let queryroot = QueryRoot(xiangmu::XmQuery, shebei::SbQuery, kehu::KhQuery, yuangong::YgQuery, haocai::HcQuery, rizhi::RzQuery, user::UQuery);
-    let mutationroot = Mutation(xiangmu::XmMutation, shebei::SbMutation, kehu::KhMutation, yuangong::YgMutation, haocai::HcMutation, rizhi::RzMutation, user::UMutation);
+    let queryroot = QueryRoot(xiangmu::XmQuery, shebei::SbQuery, kehu::KhQuery, yuangong::YgQuery, haocai::HcQuery, rizhi::RzQuery, user::UQuery, file::FileQuery);
+    let mutationroot = Mutation(xiangmu::XmMutation, shebei::SbMutation, kehu::KhMutation, yuangong::YgMutation, haocai::HcMutation, rizhi::RzMutation, user::UMutation, file::FileMutation);
     let schema = Schema::build(queryroot, mutationroot, EmptySubscription)
         .data(db_pool)
         .finish();

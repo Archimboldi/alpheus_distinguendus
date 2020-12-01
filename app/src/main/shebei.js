@@ -1,144 +1,117 @@
-import { useQuery, gql } from '@apollo/client';
-import React from 'react';
+
+import fakeData from "./fakedata.json";
 import { Table } from 'rsuite';
+import { Input, InputGroup, Icon } from 'rsuite';
+import { CheckPicker } from 'rsuite';
+import { Button, ButtonToolbar } from 'rsuite';
 
 const { Column, HeaderCell, Cell } = Table;
+const CustomInputGroupWidthButton = ({ placeholder, ...props }) => (
+  <div>
+    
+    <InputGroup {...props} inside>
+      <Input placeholder={placeholder} />
+      <InputGroup.Button>
+        <Icon icon="search" />
+      </InputGroup.Button>
+    </InputGroup>
+  </div>
+);
+const Instance = (
+  <ButtonToolbar>
+    <Button color="blue" >
+      <Icon icon="facebook-official"  /> Facebook
+    </Button>
+    <Button color="red" >
+      <Icon icon="google-plus-circle"  /> Google Plus
+    </Button>
+    <Button color="cyan" >
+      <Icon icon="twitter"  /> Twitter
+    </Button>
+    <Button color="blue" >
+      <Icon icon="linkedin"  /> LinkedIn
+    </Button>
+    <Button color="green" >
+      <Icon icon="wechat"  /> WeChat
+    </Button>
+    <Button color="yellow" >
+      <Icon icon="weibo"  /> WeiBo
+    </Button>
 
-const EXCHANGE_RATES = gql`
-  query {shebeis {
-    zcbh,
-    szbm,
-    szxm,
-    sblx,
-    sbpp,
-    sbxh,
-    smcs,
-    sbbz,
-    xlh
-  }}
-`;
-
-class PaginationTable extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      displayLength: 10,
-      loading: false,
-      page: 1
-    };
-    this.Data = props.data;
-    this.handleChangePage = this.handleChangePage.bind(this);
-    this.handleChangeLength = this.handleChangeLength.bind(this);
-  }
-  handleChangePage(dataKey) {
-    this.setState({
-      page: dataKey
-    });
-  }
-  handleChangeLength(dataKey) {
-    this.setState({
-      page: 1,
-      displayLength: dataKey
-    });
-  }
-  getData() {
-    const { displayLength, page } = this.state;
-
-    return this.Data.filter((v, i) => {
-      const start = displayLength * (page - 1);
-      const end = start + displayLength;
-      return i >= start && i < end;
-    });
-  }
-  render() {
-    const data = this.getData();
-    const { loading, displayLength, page } = this.state;
-
-      return (
-        <div style={{display:"inline-block", width:"900px"}}>
-          <Table height={420} data={data} loading={loading} onRowClick={data => {
+  </ButtonToolbar>
+);
+function SbTable() {
+  return (
+    <Table
+        height={780}
+        data={fakeData}
+        onRowClick={data => {
           console.log(data);
-        }}>
-          <Column width={100} align="center" fixed>
-                <HeaderCell>资产编号</HeaderCell>
-                <Cell dataKey="zcbh" />    
-            </Column>
-            <Column width={100} fixed>
-                <HeaderCell>所在部门</HeaderCell>
-                <Cell dataKey="szbm" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>所在项目</HeaderCell>
-                <Cell dataKey="szxm" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>设备类型</HeaderCell>
-                <Cell dataKey="sblx" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>设备品牌</HeaderCell>
-                <Cell dataKey="sbpp" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>设备型号</HeaderCell>
-                <Cell dataKey="sbxh" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>序列号</HeaderCell>
-                <Cell dataKey="xlh" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>扫描次数</HeaderCell>
-                <Cell dataKey="smcs" />    
-            </Column>
-            <Column width={100} >
-                <HeaderCell>备注</HeaderCell>
-                <Cell dataKey="sbbz" />    
-            </Column>
-          </Table>
-          <Table.Pagination
-            lengthMenu={[
-              {
-                value: 10,
-                label: 10
-              },
-              {
-                value: 20,
-                label: 20
-              },
-              {
-                value: 30,
-                label: 30
-              },
-              {
-                value: 50,
-                label: 50
-              },
-              {
-                value: 100,
-                label: 100
+        }}
+      >
+        <Column width={70} align="center" fixed>
+          <HeaderCell>Id</HeaderCell>
+          <Cell dataKey="id" />
+        </Column>
+
+        <Column width={200} fixed>
+          <HeaderCell>First Name</HeaderCell>
+          <Cell dataKey="firstName" />
+        </Column>
+
+        <Column width={200}>
+          <HeaderCell>Last Name</HeaderCell>
+          <Cell dataKey="lastName" />
+        </Column>
+
+        <Column width={200}>
+          <HeaderCell>City</HeaderCell>
+          <Cell dataKey="city" />
+        </Column>
+
+        <Column width={200}>
+          <HeaderCell>Street</HeaderCell>
+          <Cell dataKey="street" />
+        </Column>
+
+        <Column width={300}>
+          <HeaderCell>Company Name</HeaderCell>
+          <Cell dataKey="companyName" />
+        </Column>
+
+        <Column width={300}>
+          <HeaderCell>Email</HeaderCell>
+          <Cell dataKey="email" />
+        </Column>
+        <Column width={120} fixed="right">
+          <HeaderCell>Action</HeaderCell>
+
+          <Cell>
+            {rowData => {
+              function handleAction() {
+                alert(`id:${rowData.id}`);
               }
-            ]}
-            activePage={page}
-            displayLength={displayLength}
-            total={this.Data.length}
-            onChangePage={this.handleChangePage}
-            onChangeLength={this.handleChangeLength}
-          />
-        </div>
-      );
-    }
-  }
+              return (
+                <span>
+                  <a onClick={handleAction}> 归还 </a> | <a onClick={handleAction}> 调拨 </a>
+                </span>
+              );
+            }}
+          </Cell>
+        </Column>
+      </Table>
+  )
+}
+
 function Shebei() {
-    const { loading, error, data } = useQuery(EXCHANGE_RATES);
-
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error :(</p>;
-
-    return(
-    <div><PaginationTable data={data.shebeis} /></div>
-    )
-
+  return (
+    <div>
+      <CheckPicker size="md"/>
+      <CustomInputGroupWidthButton size="md" placeholder="输入关键字查询" />
+      <Instance />
+      <SbTable />
+    </div>
+  );
 }
 
 export default Shebei;

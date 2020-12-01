@@ -5,17 +5,16 @@ import { Table } from 'rsuite';
 const { Column, HeaderCell, Cell } = Table;
 
 const EXCHANGE_RATES = gql`
-  query {yuangongs {
-    ygxm,
-    ssbm,
+  query {shebeis {
+    zcbh,
+    szbm,
     szxm,
-    ygjn,
-    rzsj,
-    rgzl,
-    ygzl,
-    ljgzl,
-    ygbz,
-    sfzh
+    sblx,
+    sbpp,
+    sbxh,
+    smcs,
+    sbbz,
+    xlh
   }}
 `;
 
@@ -59,46 +58,57 @@ class PaginationTable extends React.Component {
         <div style={{display:"inline-block", width:"90%"}}>
           <Table height={420} data={data} loading={loading} onRowClick={data => {
           console.log(data);
-        }}>
-          <Column width={100} align="center" fixed>
-                <HeaderCell>员工姓名</HeaderCell>
-                <Cell dataKey="ygxm" />    
+        }} affixHeader>
+          <Column width={100} align="center" fixed  resizable>
+                <HeaderCell>资产编号</HeaderCell>
+                <Cell dataKey="zcbh" />    
             </Column>
-            <Column width={100} fixed>
-                <HeaderCell>所属部门</HeaderCell>
-                <Cell dataKey="ssbm" />    
+            <Column width={100} fixed  resizable>
+                <HeaderCell>所在部门</HeaderCell>
+                <Cell dataKey="szbm" />    
             </Column>
-            <Column width={100} >
+            <Column width={100}  resizable>
                 <HeaderCell>所在项目</HeaderCell>
                 <Cell dataKey="szxm" />    
             </Column>
-            <Column width={100} >
-                <HeaderCell>员工技能</HeaderCell>
-                <Cell dataKey="ygjn" />    
+            <Column width={100}  resizable>
+                <HeaderCell>设备类型</HeaderCell>
+                <Cell dataKey="sblx" />    
             </Column>
-            <Column width={100} >
-                <HeaderCell>入职时间</HeaderCell>
-                <Cell dataKey="rzsj" />    
+            <Column width={100}  resizable>
+                <HeaderCell>设备品牌</HeaderCell>
+                <Cell dataKey="sbpp" />    
             </Column>
-            <Column width={100} >
-                <HeaderCell>日工作量</HeaderCell>
-                <Cell dataKey="rgzl" />    
+            <Column width={100}  resizable>
+                <HeaderCell>设备型号</HeaderCell>
+                <Cell dataKey="sbxh" />    
             </Column>
-            <Column width={100} >
-                <HeaderCell>月工作量</HeaderCell>
-                <Cell dataKey="ygzl" />    
+            <Column width={100}  resizable>
+                <HeaderCell>序列号</HeaderCell>
+                <Cell dataKey="xlh" />    
             </Column>
-            <Column width={100} >
-                <HeaderCell>累计工作量</HeaderCell>
-                <Cell dataKey="ljgzl" />    
+            <Column width={100}  resizable>
+                <HeaderCell>扫描次数</HeaderCell>
+                <Cell dataKey="smcs" />
             </Column>
-            <Column width={100} >
-                <HeaderCell>员工备注</HeaderCell>
-                <Cell dataKey="ygbz" />    
+            <Column width={100}  resizable>
+                <HeaderCell>备注</HeaderCell>
+                <Cell dataKey="sbbz" />    
             </Column>
-            <Column width={100} >
-                <HeaderCell>身份证号</HeaderCell>
-                <Cell dataKey="sfzh" />    
+            <Column width={120} fixed="right">
+              <HeaderCell>操作</HeaderCell>
+              <Cell>
+                {rowData => {
+                  function handleAction() {
+                    alert(`id:${rowData.zcbh}`);
+                  }
+                  return (
+                    <span>
+                      <a onClick={handleAction}> 调拨 </a> | <a onClick={handleAction}> 归还 </a>
+                    </span>
+                  );
+                }}
+              </Cell>
             </Column>
           </Table>
           <Table.Pagination
@@ -137,7 +147,7 @@ function Shebei() {
     if (error) return <p>Error :(</p>;
 
     return(
-    <div><PaginationTable data={data.yuangongs} /></div>
+    <div><PaginationTable data={data.shebeis} /></div>
     )
 
 }
