@@ -37,6 +37,9 @@
   }
 }
 
+#div1 {
+  margin-top: 50px;
+}
 #div1, #div2 {
   float: left;
 }

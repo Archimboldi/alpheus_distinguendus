@@ -1,10 +1,22 @@
-import { useQuery, gql } from '@apollo/client';
+import './styles.css';
 import React from 'react';
-import { Table } from 'rsuite';
+import {
+  Input,
+  InputGroup,
+  Table,
+  Panel,
+  Icon,
+  ButtonToolbar,
+  Button,
+  DOMHelper,
+  Notification
+} from 'rsuite';
+import { useQuery, gql } from '@apollo/client';
+import DrawerView from './DrawerView';
 
 const { Column, HeaderCell, Cell } = Table;
-
-const EXCHANGE_RATES = gql`
+const { getHeight } = DOMHelper;
+const QUERY_SHEBEIS = gql`
   query {shebeis {
     zcbh,
     szbm,
@@ -18,48 +30,64 @@ const EXCHANGE_RATES = gql`
   }}
 `;
 
-class PaginationTable extends React.Component {
+class DataList extends React.Component {
   constructor(props) {
-    super(props);
+    super();
     this.state = {
-      displayLength: 10,
-      loading: false,
-      page: 1
+      show: false,
+      data: {}
     };
-    this.Data = props.data;
-    this.handleChangePage = this.handleChangePage.bind(this);
-    this.handleChangeLength = this.handleChangeLength.bind(this);
+    this.listdata = props.data;
+    this.handleEdit = this.handleEdit.bind(this);
   }
-  handleChangePage(dataKey) {
+  handleShowDrawer = () => {
     this.setState({
-      page: dataKey
+      show: true
     });
-  }
-  handleChangeLength(dataKey) {
+  };
+  handleCloseDrawer = () => {
     this.setState({
-      page: 1,
-      displayLength: dataKey
+      show: false
     });
+  };
+  handleEdit(rowData) {
+    this.setState({
+      show: false,
+      data: rowData
+    })
   }
-  getData() {
-    const { displayLength, page } = this.state;
-
-    return this.Data.filter((v, i) => {
-      const start = displayLength * (page - 1);
-      const end = start + displayLength;
-      return i >= start && i < end;
-    });
+  handleSearch = () => {
+    this.listdata = [];
   }
   render() {
-    const data = this.getData();
-    const { loading, displayLength, page } = this.state;
+    return (
+      <div>
+        <Panel header={<h3>设备情况</h3>}>
+          <div className="table-toolbar clearfix">
+            <ButtonToolbar className="inner-left">
+              <Button appearance="primary" placement="left" onClick={this.handleShowDrawer}>
+                新增
+              </Button>
+            </ButtonToolbar>
 
-      return (
-        <div style={{display:"inline-block", width:"90%"}}>
-          <Table height={420} data={data} loading={loading} onRowClick={data => {
-          console.log(data);
-        }} affixHeader>
-          <Column width={100} align="center" fixed  resizable>
+            <div className="inner-right">
+              <InputGroup inside>
+                <Input placeholder="检索" />
+                <InputGroup.Addon onClick={this.handleSearch}>
+                  <Icon icon="search" />
+                </InputGroup.Addon>
+              </InputGroup>
+            </div>
+          </div>
+
+          <Table
+            height={getHeight(window) - 190}
+            data={this.listdata}
+            onRowClick={data => {
+              console.log(data);
+            }}
+          >
+            <Column width={120} align="center" fixed  resizable>
                 <HeaderCell>资产编号</HeaderCell>
                 <Cell dataKey="zcbh" />    
             </Column>
@@ -95,60 +123,40 @@ class PaginationTable extends React.Component {
                 <HeaderCell>备注</HeaderCell>
                 <Cell dataKey="sbbz" />    
             </Column>
-            <Column width={120} fixed="right">
+            <Column width={140} fixed="right">
               <HeaderCell>操作</HeaderCell>
               <Cell>
                 {rowData => {
                   function handleAction() {
                     alert(`id:${rowData.zcbh}`);
+                   
                   }
+               
                   return (
                     <span>
-                      <a onClick={handleAction}> 调拨 </a> | <a onClick={handleAction}> 归还 </a>
+                      <a onClick={this.handleShowDrawer}> 变更 </a> | <a onClick={handleAction}> 调拨 </a> | <a onClick={handleAction}> 报废 </a>
                     </span>
                   );
                 }}
               </Cell>
             </Column>
           </Table>
-          <Table.Pagination
-            lengthMenu={[
-              {
-                value: 10,
-                label: 10
-              },
-              {
-                value: 20,
-                label: 20
-              },
-              {
-                value: 50,
-                label: 50
-              },
-              {
-                value: 100,
-                label: 100
-              }
-            ]}
-            activePage={page}
-            displayLength={displayLength}
-            total={this.Data.length}
-            onChangePage={this.handleChangePage}
-            onChangeLength={this.handleChangeLength}
-          />
-        </div>
-      );
-    }
+        </Panel>
+        <DrawerView show={this.state.show} onClose={this.handleCloseDrawer} />
+      </div>
+    );
   }
+}
+
 function Shebei() {
-    const { loading, error, data } = useQuery(EXCHANGE_RATES);
+  const { loading, error, data } = useQuery(QUERY_SHEBEIS);
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error :(</p>;
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
 
-    return(
-    <div><PaginationTable data={data.shebeis} /></div>
-    )
+  return(
+  <div><DataList data={data.shebeis} /></div>
+  )
 
 }
 

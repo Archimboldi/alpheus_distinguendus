@@ -1,0 +1,22 @@
+.table-toolbar {
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px 4px 0 0;
+}
+.clearfix:after{visibility:hidden;display:block;font-size:0;content: " ";clear:both;height:0;}
+.clearfix{*zoom:1;}
+.table-toolbar .inner-left {
+  float: left;
+}
+.table-toolbar .inner-right {
+  float: right;
+}
+.table-toolbar {
+  display: inline-table; 
+}
+
+
+.rs-table {
+  background: #fff;
+}
+  

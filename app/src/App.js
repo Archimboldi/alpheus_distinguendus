@@ -1,10 +1,10 @@
 import './App.css';
 import 'rsuite/dist/styles/rsuite-default.css';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
-import { Sidenav, Nav, Icon } from 'rsuite';
+import { Sidenav, Nav, Icon, Sidebar } from 'rsuite';
 import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import React from 'react';
-import Shebei from './main/shebei';
+import Shebei from './shebei';
 import Xiangmu from './main/xiangmu';
 import Kehu from './main/kehu';
 import Yuangong from './main/yuangong';
@@ -43,13 +43,20 @@ class Demo extends React.Component {
     return (
       <div>
         <Router>
+        <Sidebar
+            id="div1"
+          style={{ display: 'flex', flexDirection: 'column' }}
+          width={expanded ? 120 : 100}
+          collapsible
+        >
           <Sidenav
             expanded={expanded}
             defaultOpenKeys={['3', '4']}
             activeKey={this.state.activeKey}
             onSelect={this.handleSelect}
-            style={{ width: "10%" }}
-            id="div1"
+
+        
+            appearance="subtle"
           >
             <Sidenav.Body>
               <Nav>
@@ -91,43 +98,49 @@ class Demo extends React.Component {
               </Nav>
             </Sidenav.Body>
           </Sidenav>
-            <Switch id="div2">
-              <Route exact path="/">
-                <ApolloProvider client={client}>
-                  <Xiangmu />
-                </ApolloProvider>
-              </Route>
-              <Route path="/shebei">
-                <ApolloProvider client={client}>
-                  <Shebei />
-                </ApolloProvider>
-              </Route>
-              <Route path="/kehu">
-                <ApolloProvider client={client}>
-                  <Kehu />
-                </ApolloProvider>
-              </Route>
-              <Route path="/yuangong">
-                <ApolloProvider client={client}>
-                  <Yuangong />
-                </ApolloProvider>
-              </Route>
-              <Route path="/haocai">
-                <ApolloProvider client={client}>
-                  <Haocai />
-                </ApolloProvider>
-              </Route>
-              <Route path="/rizhi">
-                <ApolloProvider client={client}>
-                  <Rizhi />
-                </ApolloProvider>
-              </Route>
-              <Route path="/user">
-                <ApolloProvider client={client}>
-                  <User />
-                </ApolloProvider>
-              </Route>
-          </Switch>
+          {/* <Nav pullRight>
+            <Nav.Item onClick={this.handleToggle} style={{float:"right"}}>
+              <Icon icon={expanded ? 'angle-left' : 'angle-right'} />
+            </Nav.Item>
+          </Nav> */}
+        </Sidebar>
+          <Switch id="div2">
+            <Route exact path="/">
+              <ApolloProvider client={client}>
+                <Xiangmu />
+              </ApolloProvider>
+            </Route>
+            <Route path="/shebei">
+              <ApolloProvider client={client}>
+                <Shebei />
+              </ApolloProvider>
+            </Route>
+            <Route path="/kehu">
+              <ApolloProvider client={client}>
+                <Kehu />
+              </ApolloProvider>
+            </Route>
+            <Route path="/yuangong">
+              <ApolloProvider client={client}>
+                <Yuangong />
+              </ApolloProvider>
+            </Route>
+            <Route path="/haocai">
+              <ApolloProvider client={client}>
+                <Haocai />
+              </ApolloProvider>
+            </Route>
+            <Route path="/rizhi">
+              <ApolloProvider client={client}>
+                <Rizhi />
+              </ApolloProvider>
+            </Route>
+            <Route path="/user">
+              <ApolloProvider client={client}>
+                <User />
+              </ApolloProvider>
+            </Route>
+        </Switch>
         
         </Router>
       </div>
