@@ -1,4 +1,4 @@
-use async_graphql::{Context, Enum, Object, Subscription, Result};
+use async_graphql::*;
 use futures::{Stream, StreamExt};
 use super::simple_broker::SimpleBroker;
 use std::time::Duration;
@@ -83,7 +83,8 @@ impl SbQuery {
     async fn shebei(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "zcbh of shebei")] zcbh: String,
+        #[graphql(desc = "zcbh of shebei")]
+        zcbh: String,
     ) -> Result<Shebei> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let rec = sqlx::query!(
@@ -111,19 +112,31 @@ impl SbQuery {
 
 }
 
+#[derive(InputObject)]
+struct Sb {
+    pub zcbh: String,
+    pub szbm: Option<String>,
+    pub szxm: Option<String>,
+    pub sblx: Option<String>,
+    pub sbpp: Option<String>,
+    pub sbxh: Option<String>,
+    pub smcs: Option<String>,
+    pub sbbz: Option<String>,
+    pub xlh: Option<String>
+}
+
 pub struct SbMutation;
 
 #[Object]
 impl SbMutation {
-    async fn create_shebei(&self, ctx: &Context<'_>, zcbh: String, szbm: Option<String>, szxm: Option<String>, sblx: Option<String>,
-     sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<bool> {
+    async fn create_shebei(&self, ctx: &Context<'_>, sb: Sb) -> Result<bool> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO shebei(zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz)
                 VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
             "#,
-            zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz
+            sb.zcbh,sb.szbm,sb.szxm,sb.sblx,sb.sbpp,sb.sbxh,sb.xlh,sb.smcs,sb.sbbz
         )
         .execute(&mut pool)
         .await?;

@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Input,
   InputGroup,
+  InputPicker,
   Table,
   Panel,
   Icon,
@@ -12,7 +13,7 @@ import {
   Notification
 } from 'rsuite';
 import { useQuery, gql } from '@apollo/client';
-import DrawerView from './DrawerView';
+import Shebei from './DrawerView';
 
 const { Column, HeaderCell, Cell } = Table;
 const { getHeight } = DOMHelper;
@@ -35,9 +36,18 @@ class DataList extends React.Component {
     super();
     this.state = {
       show: false,
-      data: {}
+      data: props.data
     };
-    this.listdata = props.data;
+    this.picker = [{label:'资产编号', value:'zcbh'},
+      {label:'所在部门', value:'szbm'},
+      {label:'所在项目', value:'szxm'},
+      {label:'设备类型', value:'sblx'},
+      {label:'设备品牌', value:'sbpp'},
+      {label:'设备型号', value:'sbxh'},
+      {label:'序列号', value:'xlh'},
+      {label:'扫描次数', value:'smcs'},
+      {label:'备注', value:'sbbz'}
+    ]
     this.handleEdit = this.handleEdit.bind(this);
   }
   handleShowDrawer = () => {
@@ -51,13 +61,15 @@ class DataList extends React.Component {
     });
   };
   handleEdit(rowData) {
+    console.log(rowData)
     this.setState({
-      show: false,
-      data: rowData
+      show: true
     })
   }
   handleSearch = () => {
-    this.listdata = [];
+    this.setState({
+      data: []
+    })
   }
   render() {
     return (
@@ -68,10 +80,14 @@ class DataList extends React.Component {
               <Button appearance="primary" placement="left" onClick={this.handleShowDrawer}>
                 新增
               </Button>
+              <Button color="green">导入</Button>
+              <Button color="violet">导出</Button>
             </ButtonToolbar>
-
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             <div className="inner-right">
               <InputGroup inside>
+                <InputPicker data={this.picker} />
+                &nbsp;
                 <Input placeholder="检索" />
                 <InputGroup.Addon onClick={this.handleSearch}>
                   <Icon icon="search" />
@@ -82,10 +98,10 @@ class DataList extends React.Component {
 
           <Table
             height={getHeight(window) - 190}
-            data={this.listdata}
-            onRowClick={data => {
-              console.log(data);
-            }}
+            data={this.state.data}
+            // onRowClick={data => {
+            //   console.log(data);
+            // }}
           >
             <Column width={120} align="center" fixed  resizable>
                 <HeaderCell>资产编号</HeaderCell>
@@ -129,12 +145,10 @@ class DataList extends React.Component {
                 {rowData => {
                   function handleAction() {
                     alert(`id:${rowData.zcbh}`);
-                   
                   }
-               
                   return (
                     <span>
-                      <a onClick={this.handleShowDrawer}> 变更 </a> | <a onClick={handleAction}> 调拨 </a> | <a onClick={handleAction}> 报废 </a>
+                      <a onClick={this.handleEdit}> 变更 </a> | <a onClick={handleAction}> 调拨 </a> | <a onClick={handleAction}> 报废 </a>
                     </span>
                   );
                 }}
@@ -142,13 +156,13 @@ class DataList extends React.Component {
             </Column>
           </Table>
         </Panel>
-        <DrawerView show={this.state.show} onClose={this.handleCloseDrawer} />
+        <Shebei show={this.state.show} onClose={this.handleCloseDrawer} />
       </div>
     );
   }
 }
 
-function Shebei() {
+function Shebeis() {
   const { loading, error, data } = useQuery(QUERY_SHEBEIS);
 
   if (loading) return <p>Loading...</p>;
@@ -160,4 +174,4 @@ function Shebei() {
 
 }
 
-export default Shebei;
+export default Shebeis;
