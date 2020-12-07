@@ -1,18 +1,18 @@
 //@flow
 import * as React from 'react';
-import { Modal, Button, Form, FormGroup, ControlLabel, FormControl, Alert } from 'rsuite';
-import { useMutation, gql } from '@apollo/client';
-const CREATE_SHEBEI = gql`
-  mutation CreateShebei($sb: Sb){
-    createShebei(sb: $sb)
-  }
-`;
+import { Modal, Button, Form, FormGroup, ControlLabel, FormControl } from 'rsuite';
 
-function Shebei(props) {
-  const [createShebei] = useMutation(CREATE_SHEBEI);
-  const { show, onClose, data } = props;
-  let form;
-  return(
+class Shebei extends React.Component {
+  constructor(props){
+    super(props);
+    this.state={
+      formValue: this.props.rowdata
+    }
+  }
+
+  render(){
+    const { show, onClose, rowdata } = this.props;
+    return(
       <div className="modal-container">
         <Modal show={show} onHide={onClose}>
           <Modal.Header>
@@ -20,8 +20,8 @@ function Shebei(props) {
           </Modal.Header>
           <Modal.Body>
           <Form fluid layout="horizontal"
-            ref={ref => (form = ref)}
-            data={data}
+            formDefaultValue={rowdata}
+            onChange={console.log(this.formValue)}
           >
             <FormGroup>
               <ControlLabel>资产编号</ControlLabel>
@@ -62,16 +62,7 @@ function Shebei(props) {
           </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={e =>{
-            e.preventDefault();
-            let nsb = form.state.formValue;
-            if (createShebei({variables:{"sb":nsb}})){
-              Alert.success('保存成功.');
-              onClose();
-            }else{
-              Alert.error('保存失败.');
-            }
-          }} appearance="primary">
+            <Button onClick={onClose} appearance="primary">
               确定
             </Button>
             <Button onClick={onClose} appearance="subtle">
@@ -80,7 +71,9 @@ function Shebei(props) {
           </Modal.Footer>
         </Modal>
       </div>
-  )
+    )
+  }
+ 
 }
 
 export default Shebei;

@@ -12,25 +12,11 @@ import {
   DOMHelper,
   Notification
 } from 'rsuite';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, useMutation, gql } from '@apollo/client';
 import Shebei from './DrawerView';
 
 const { Column, HeaderCell, Cell } = Table;
 const { getHeight } = DOMHelper;
-const QUERY_SHEBEIS = gql`
-  query {shebeis {
-    zcbh,
-    szbm,
-    szxm,
-    sblx,
-    sbpp,
-    sbxh,
-    smcs,
-    sbbz,
-    xlh
-  }}
-`;
-
 class DataList extends React.Component {
   constructor(props) {
     super();
@@ -49,21 +35,24 @@ class DataList extends React.Component {
       {label:'备注', value:'sbbz'}
     ]
     this.handleEdit = this.handleEdit.bind(this);
+    this.handleCloseDrawer = this.handleCloseDrawer.bind(this);
   }
   handleShowDrawer = () => {
     this.setState({
-      show: true
+      show: true,
+      rowdata: {}
     });
   };
-  handleCloseDrawer = () => {
+  handleCloseDrawer(code) {
     this.setState({
       show: false
     });
+    console.log("1");
   };
   handleEdit(rowData) {
-    console.log(rowData)
     this.setState({
-      show: true
+      show: true,
+      rowdata: rowData
     })
   }
   handleSearch = () => {
@@ -148,7 +137,7 @@ class DataList extends React.Component {
                   }
                   return (
                     <span>
-                      <a onClick={this.handleEdit}> 变更 </a> | <a onClick={handleAction}> 调拨 </a> | <a onClick={handleAction}> 报废 </a>
+                      <a onClick={this.handleEdit.bind(null,rowData)}> 变更 </a> | <a onClick={handleAction}> 调拨 </a> | <a onClick={handleAction}> 报废 </a>
                     </span>
                   );
                 }}
@@ -156,20 +145,49 @@ class DataList extends React.Component {
             </Column>
           </Table>
         </Panel>
-        <Shebei show={this.state.show} onClose={this.handleCloseDrawer} />
+        <Shebei show={this.state.show} onClose={this.handleCloseDrawer} rowdata={this.state.rowdata} />
       </div>
     );
   }
 }
+
+const CREATE_SHEBEI = gql`
+  mutation CreateShebei($sb: Sb!){
+    createShebei(sb: $sb)
+  }
+`;
+const CHANGE_SHEBEI = gql`
+  mutation ChangeShebei($sb: Sb!, $ozcbh: String!){
+    changeShebei(sb: $sb, ozcbh: $ozcbh)
+  }
+`;
+function Cu(){
+  console.log("cud");
+  return 1;
+}
+const DELETE_SHEBEI = gql`
+  mutation DeleteShebei($zcbh: String!){
+    deleteShebei(zcbh: $zcbh)
+  }
+`;
+
+function De(){
+
+}
+
+const QUERY_SHEBEIS = gql`
+  query {shebeis {
+    zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+  }}
+`;
 
 function Shebeis() {
   const { loading, error, data } = useQuery(QUERY_SHEBEIS);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error :(</p>;
-
   return(
-  <div><DataList data={data.shebeis} /></div>
+    <div><DataList data={data.shebeis} /></div>
   )
 
 }

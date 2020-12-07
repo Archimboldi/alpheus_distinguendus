@@ -170,14 +170,13 @@ impl SbMutation {
         Ok(done > 0)
     }
 
-    async fn change_shebei(&self, ctx: &Context<'_>, nzcbh: String, szbm: Option<String>, szxm: Option<String>, sblx: Option<String>,
-    sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>, ozcbh: String,) -> Result<bool> {
+    async fn change_shebei(&self, ctx: &Context<'_>, sb: Sb, ozcbh: String,) -> Result<bool> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"UPDATE shebei
                 SET zcbh = $1, szbm = $2, szxm = $3, sblx = $4, sbpp = $5, sbxh = $6, xlh = $7, smcs = $8, sbbz = $9
                 WHERE zcbh = $10"#,
-            nzcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,ozcbh
+            sb.zcbh,sb.szbm,sb.szxm,sb.sblx,sb.sbpp,sb.sbxh,sb.xlh,sb.smcs,sb.sbbz,ozcbh
         )
         .execute(pool)
         .await?;
