@@ -22,7 +22,8 @@ class DataList extends React.Component {
     super();
     this.state = {
       show: false,
-      data: props.data
+      data: props.data,
+      rowdata: {}
     };
     this.picker = [{label:'资产编号', value:'zcbh'},
       {label:'所在部门', value:'szbm'},
@@ -43,11 +44,19 @@ class DataList extends React.Component {
       rowdata: {}
     });
   };
-  handleCloseDrawer(code) {
-    this.setState({
-      show: false
-    });
-    console.log("1");
+  handleCloseDrawer(code, data) {
+    if (code === 0) {
+      
+      console.log(code,data)
+    }else if(code ===1){
+      console.log(code,data)
+    }else{
+      this.setState({
+        show: false,
+        rowdata: {}
+      });
+    }
+    
   };
   handleEdit(rowData) {
     this.setState({

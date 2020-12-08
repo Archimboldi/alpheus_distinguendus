@@ -5,9 +5,23 @@ import { Modal, Button, Form, FormGroup, ControlLabel, FormControl } from 'rsuit
 class Shebei extends React.Component {
   constructor(props){
     super(props);
+    const {rowdata} = props.rowdata;
     this.state={
-      formValue: this.props.rowdata
+      formValue: {
+        zcbh: '',
+        szbm: '',
+        szxm: '',
+        sblx: '',
+        sbpp: '',
+        sbxh: '',
+        xlh: '',
+        smcs: '',
+        sbbz: ''
+      }
     }
+    this.setState({
+      formValue: rowdata
+    })
   }
 
   render(){
@@ -20,8 +34,11 @@ class Shebei extends React.Component {
           </Modal.Header>
           <Modal.Body>
           <Form fluid layout="horizontal"
-            formDefaultValue={rowdata}
-            onChange={console.log(this.formValue)}
+            ref={ref =>(this.form = ref)}
+            onChange={formValue =>{
+              this.setState({formValue});
+            }}
+            formValue={rowdata}
           >
             <FormGroup>
               <ControlLabel>资产编号</ControlLabel>
@@ -62,7 +79,7 @@ class Shebei extends React.Component {
           </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={onClose} appearance="primary">
+            <Button onClick={onClose.bind(null,(rowdata==={}?0:1),this.state.formValue)} appearance="primary">
               确定
             </Button>
             <Button onClick={onClose} appearance="subtle">
