@@ -23,7 +23,13 @@ class Shebei extends React.Component {
       formValue: rowdata
     })
   }
-
+  componentDidUpdate(prevProps){
+    if (this.props.rowdata !== prevProps.rowdata){
+      this.setState({
+        formValue: this.props.rowdata
+      })
+    }
+  }
   render(){
     const { show, onClose, rowdata } = this.props;
     return(
@@ -36,9 +42,9 @@ class Shebei extends React.Component {
           <Form fluid layout="horizontal"
             ref={ref =>(this.form = ref)}
             onChange={formValue =>{
-              this.setState({formValue});
+              this.setState({formValue: formValue});
             }}
-            formValue={rowdata}
+            formDefaultValue={rowdata}
           >
             <FormGroup>
               <ControlLabel>资产编号</ControlLabel>
@@ -79,7 +85,7 @@ class Shebei extends React.Component {
           </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={onClose.bind(null,(rowdata==={}?0:1),this.state.formValue)} appearance="primary">
+            <Button onClick={onClose.bind(null,(JSON.stringify(rowdata)=="{}"?0:1),this.state.formValue)} appearance="primary">
               确定
             </Button>
             <Button onClick={onClose} appearance="subtle">

@@ -10,7 +10,8 @@ import {
   ButtonToolbar,
   Button,
   DOMHelper,
-  Notification
+  Notification,
+  Alert
 } from 'rsuite';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import Shebei from './DrawerView';
@@ -46,10 +47,17 @@ class DataList extends React.Component {
   };
   handleCloseDrawer(code, data) {
     if (code === 0) {
-      
-      console.log(code,data)
+      if(Create(data)){
+        Alert.success("保存成功！");
+      }else{
+        Alert.error("保存失败！");
+      }
     }else if(code ===1){
-      console.log(code,data)
+      if(Update(data)){
+        Alert.success("保存成功！");
+      }else{
+        Alert.error("保存失败！");
+      }
     }else{
       this.setState({
         show: false,
@@ -170,9 +178,25 @@ const CHANGE_SHEBEI = gql`
     changeShebei(sb: $sb, ozcbh: $ozcbh)
   }
 `;
-function Cu(){
-  console.log("cud");
-  return 1;
+function Create(ndata){
+  const [createShebei, data] = useMutation(CREATE_SHEBEI,{
+    onError:(error)=>{
+        console.log(error.graphQLErrors);
+    },
+    onCompleted: (data)=>{
+        console.log("OnCompleted:",data);
+    }
+  });
+  console.log(createShebei({variables:{"sb": ndata}}));
+    return(
+    
+      Alert.success("保存成功！")
+    )
+
+  
+}
+function Update(data){
+
 }
 const DELETE_SHEBEI = gql`
   mutation DeleteShebei($zcbh: String!){
