@@ -85,7 +85,7 @@ class Shebei extends React.Component {
           </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={onClose.bind(null,(JSON.stringify(rowdata)=="{}"?0:1),this.state.formValue)} appearance="primary">
+            <Button onClick={onClose.bind(null,(JSON.stringify(rowdata)==="{}"?0:1),this.state.formValue)} appearance="primary">
               确定
             </Button>
             <Button onClick={onClose} appearance="subtle">

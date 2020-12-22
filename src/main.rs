@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
     let schema = Schema::build(queryroot, mutationroot, EmptySubscription)
         .data(db_pool)
         .finish();
-    println!("Playground: http://localhost:8000/graphql");
+    println!("Playground: http://localhost:8080/graphql");
 
     let serv = HttpServer::new(move || {
         App::new()
@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
             .wrap(
             Cors::default()
                 .allowed_origin("http://localhost:3000")
-                .allowed_origin("http://localhost:8000")
+                .allowed_origin("http://localhost:8080")
                 .allowed_header(http::header::CONTENT_TYPE)
                 .allowed_methods(vec!["GET", "POST"])
                 .max_age(3600)
@@ -70,9 +70,9 @@ async fn main() -> Result<()> {
                         .to(index_ws),
             )
             .service(web::resource("/graphql").guard(guard::Get()).to(index_playground))
-            .service(fs::Files::new("/","./app/build", ).index_file("index.html"))
+            .service(fs::Files::new("/","./dist", ).index_file("index.html"))
     })
-    .bind("127.0.0.1:8000")?;
+    .bind("localhost:8080")?;
     serv.run().await?;
     Ok(())
 }

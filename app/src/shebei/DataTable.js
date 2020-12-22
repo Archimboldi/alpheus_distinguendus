@@ -113,14 +113,15 @@ class DataList extends React.Component {
                 <HeaderCell>资产编号</HeaderCell>
                 <Cell dataKey="zcbh" />    
             </Column>
-            <Column width={100} fixed  resizable>
-                <HeaderCell>所在部门</HeaderCell>
-                <Cell dataKey="szbm" />    
-            </Column>
-            <Column width={100}  resizable>
+            <Column width={100} fixed resizable>
                 <HeaderCell>所在项目</HeaderCell>
                 <Cell dataKey="szxm" />    
             </Column>
+            <Column width={100} resizable>
+                <HeaderCell>所在部门</HeaderCell>
+                <Cell dataKey="szbm" />    
+            </Column>
+            
             <Column width={100}  resizable>
                 <HeaderCell>设备类型</HeaderCell>
                 <Cell dataKey="sblx" />    
@@ -179,7 +180,8 @@ const CHANGE_SHEBEI = gql`
   }
 `;
 function Create(ndata){
-  const [createShebei, data] = useMutation(CREATE_SHEBEI,{
+  const [createShebei, { loading: mutationLoading, error: mutationError,data:mutationData }
+  ] = useMutation(CREATE_SHEBEI,{
     onError:(error)=>{
         console.log(error.graphQLErrors);
     },
