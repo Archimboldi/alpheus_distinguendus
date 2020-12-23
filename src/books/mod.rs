@@ -6,7 +6,6 @@ pub mod yuangong;
 pub mod haocai;
 pub mod rizhi;
 pub mod user;
-pub mod simple_broker;
 pub mod file;
 
 #[derive(MergedObject)]

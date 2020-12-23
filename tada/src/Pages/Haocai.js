@@ -39,7 +39,7 @@ const AddForm = React.forwardRef((props, ref) => (
       <Form.Item
         label="资产编号"
         name="zcbh"
-        rules={[{ required: true }]}
+        rules={[{ required: true, message: 'Please input zcbh!' }]}
       >
         <Input />
       </Form.Item>

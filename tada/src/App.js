@@ -10,6 +10,10 @@ import {
 } from '@ant-design/icons';
 import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import Shebei from './Pages/Shebei';
+import Xiangmu from './Pages/Xiangmu';
+import Yuangong from './Pages/Yuangong';
+import Haocai from './Pages/Haocai';
+import Kehu from './Pages/Kehu';
 
 const { Header, Sider, Content } = Layout;
 class App extends React.Component {
@@ -29,13 +33,28 @@ class App extends React.Component {
             <div className="logo" />
             <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
               <Menu.Item key="1" icon={<UserOutlined />}>
-                <Link to="/" style={{color:"#7a7a7a"}}>
+                <Link to="/xiangmu" style={{color:"#7a7a7a"}}>
                   项目
                 </Link>
               </Menu.Item>
               <Menu.Item key="2" icon={<VideoCameraOutlined />}>
                 <Link to="/shebei" style={{color:"#7a7a7a"}}>
                   设备
+                </Link>
+              </Menu.Item>
+              <Menu.Item key="3" icon={<VideoCameraOutlined />}>
+                <Link to="/kehu" style={{color:"#7a7a7a"}}>
+                  客户
+                </Link>
+              </Menu.Item>
+              <Menu.Item key="4" icon={<VideoCameraOutlined />}>
+                <Link to="/yuangong" style={{color:"#7a7a7a"}}>
+                  员工
+                </Link>
+              </Menu.Item>
+              <Menu.Item key="5" icon={<VideoCameraOutlined />}>
+                <Link to="/haocai" style={{color:"#7a7a7a"}}>
+                  耗材
                 </Link>
               </Menu.Item>
             </Menu>
@@ -57,13 +76,21 @@ class App extends React.Component {
               }}
             >
             <Switch id="div2">
-              {/* <Route exact path="/">
-                <ApolloProvider>
-                  <Xiangmu />
-                </ApolloProvider>
-              </Route> */}
+              <Route path='/' component={Xiangmu} exact></Route>
+              <Route path="/xiangmu" key="1">
+                <Xiangmu />
+              </Route>
               <Route path="/shebei" key="2">
                 <Shebei />
+              </Route>
+              <Route path="/kehu" key="3">
+                <Kehu />
+              </Route>
+              <Route path="/yuangong" key="4">
+                <Yuangong />
+              </Route>
+              <Route path="/haocai" key="5">
+                <Haocai />
               </Route>
             </Switch>
             

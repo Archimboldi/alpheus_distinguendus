@@ -1,12 +1,10 @@
-use async_graphql::{Context, Enum, Object, Subscription, Result};
-use futures::{Stream, StreamExt};
-use super::simple_broker::SimpleBroker;
-use std::time::Duration;
+use async_graphql::{Context, Object, Result};
 use sqlx::SqlitePool;
 
 #[derive(Clone)]
 pub struct Haocai {
-    pub hcmc: String,
+    pub id: i32,
+    pub hcmc: Option<String>,
     pub gg: Option<String>,
     pub sl: Option<String>,
     pub dw: Option<String>,
@@ -17,8 +15,11 @@ pub struct Haocai {
 
 #[Object]
 impl Haocai {
-    async fn hcmc(&self) -> &str {
-        &self.hcmc
+    async fn id(&self) -> &i32 {
+        &self.id
+    }
+    async fn hcmc(&self) -> Option<&String> {
+        self.hcmc.as_ref()
     }
     async fn gg(&self) -> Option<&String> {
         self.gg.as_ref()
@@ -49,9 +50,9 @@ impl HcQuery {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let recs = sqlx::query!(
             r#"
-                SELECT hcmc,gg,sl,dw,lj,hcbz,hcdj
+                SELECT id,hcmc,gg,sl,dw,lj,hcbz,hcdj
                     FROM haocai
-                ORDER BY hcmc DESC
+                ORDER BY id DESC
             "#
         )
         .fetch_all(pool)
@@ -59,6 +60,7 @@ impl HcQuery {
         let mut books: Vec<Haocai> = vec![];
         for rec in recs {
             books.push(Haocai{
+                id: rec.id,
                 hcmc: rec.hcmc,
                 gg: rec.gg,
                 sl: rec.sl,
@@ -73,19 +75,20 @@ impl HcQuery {
     async fn haocai(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "hcmc of haocai")] hcmc: String,
+        #[graphql(desc = "id of haocai")] id: i32,
     ) -> Result<Haocai> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let rec = sqlx::query!(
             r#"
                 SELECT * FROM haocai
-                WHERE hcmc = (?1)
+                WHERE id = (?1)
             "#,
-            hcmc
+            id
         )
         .fetch_one(pool)
         .await?;
         let book = Haocai{
+            id: rec.id,
             hcmc: rec.hcmc,
             gg: rec.gg,
             sl: rec.sl,
@@ -103,8 +106,8 @@ pub struct HcMutation;
 
 #[Object]
 impl HcMutation {
-    async fn create_haocai(&self, ctx: &Context<'_>, hcmc: String, gg: Option<String>, sl: Option<String>, dw: Option<String>,
-     lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>) -> Result<bool> {
+    async fn create_haocai(&self, ctx: &Context<'_>, hcmc: Option<String>, gg: Option<String>, sl: Option<String>, dw: Option<String>,
+     lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>) -> Result<Haocai> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"
@@ -115,20 +118,47 @@ impl HcMutation {
         )
         .execute(&mut pool)
         .await?;
-        // SimpleBroker::publish(BookChanged {
-        //     mutation_type: MutationType::Created,
-        //     id: id.clone(),
-        // });
-        Ok(done > 0)
+        if done == 1 {
+            let rec = sqlx::query!(
+                r#"
+                    SELECT * FROM haocai ORDER BY id DESC
+                "#
+            )
+            .fetch_one(pool)
+            .await?;
+            let nhc = Haocai{
+                id: rec.id,
+                hcmc: rec.hcmc,
+                gg: rec.gg,
+                sl: rec.sl,
+                dw: rec.dw,
+                lj: rec.lj,
+                hcbz: rec.hcbz,
+                hcdj: rec.hcdj
+            };
+            Ok(nhc)
+        }else{
+            let ohc = Haocai{
+                id: -1,
+                hcmc: hcmc,
+                gg: gg,
+                sl: sl,
+                dw: dw,
+                lj: lj,
+                hcbz: hcbz,
+                hcdj: hcdj
+            };
+            Ok(ohc)
+        }
     }
 
-    async fn delete_haocai(&self, ctx: &Context<'_>, hcmc: String) -> Result<bool> {
+    async fn delete_haocai(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
         let pool = ctx.data_unchecked::<SqlitePool>();
      
         let done = sqlx::query!(
             r#"DELETE FROM haocai
-                WHERE hcmc = $1"#,
-            hcmc
+                WHERE id = $1"#,
+            id
         )
         .execute(pool)
         .await?;
@@ -145,77 +175,50 @@ impl HcMutation {
         Ok(done > 0)
     }
 
-    async fn change_haocai(&self, ctx: &Context<'_>, nhcmc: String, gg: Option<String>, sl: Option<String>, dw: Option<String>,
-    lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>, ohcmc: String) -> Result<bool> {
+    async fn change_haocai(&self, ctx: &Context<'_>, id:i32, hcmc: Option<String>, gg: Option<String>, sl: Option<String>, dw: Option<String>,
+    lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>) -> Result<Haocai> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"UPDATE haocai
                 SET hcmc = $1, gg = $2, sl = $3, dw = $4, lj = $5, hcbz = $6, hcdj = $7
-                WHERE hcmc = $10"#,
-            nhcmc,gg,sl,dw,lj,hcbz,hcdj,ohcmc
+                WHERE id = $10"#,
+            hcmc,gg,sl,dw,lj,hcbz,hcdj,id
         )
         .execute(pool)
         .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
-}
-
-//订阅
-#[derive(Enum, Eq, PartialEq, Copy, Clone)]
-enum MutationType {
-    Created,
-    Deleted,
-    Changed
-}
-
-#[derive(Clone)]
-struct BookChanged {
-    mutation_type: MutationType,
-    hcmc: String,
-}
-
-#[Object]
-impl BookChanged {
-    async fn mutation_type(&self) -> MutationType {
-        self.mutation_type
-    }
-
-    async fn hcmc(&self) -> &str {
-        &self.hcmc
-    }
-
-}
-
-pub struct SubscriptionRoot;
-
-#[Subscription]
-impl SubscriptionRoot {
-    async fn interval(&self, #[graphql(default = 1)] n: i32) -> impl Stream<Item = i32> {
-        let mut value = 0;
-        tokio::time::interval(Duration::from_secs(1)).map(move |_| {
-            value += n;
-            value
-        })
-    }
-
-    async fn books(&self, mutation_type: Option<MutationType>) -> impl Stream<Item = BookChanged> {
-        SimpleBroker::<BookChanged>::subscribe().filter(move |event| {
-            let res = if let Some(mutation_type) = mutation_type {
-                event.mutation_type == mutation_type
-            } else {
-                true
+        if done == 1 {
+            let nhc = Haocai{
+                id: id,
+                hcmc: hcmc,
+                gg: gg,
+                sl: sl,
+                dw: dw,
+                lj: lj,
+                hcbz: hcbz,
+                hcdj: hcdj
             };
-            async move { res }
-        })
+            Ok(nhc)
+        }else{
+            let rec = sqlx::query!(
+                r#"
+                    SELECT * FROM haocai
+                        WHERE id = $1
+                "#,
+                id
+            )
+            .fetch_one(pool)
+            .await?;
+            let ohc = Haocai{
+                id: rec.id,
+                hcmc: rec.hcmc,
+                gg: rec.gg,
+                sl: rec.sl,
+                dw: rec.dw,
+                lj: rec.lj,
+                hcbz: rec.hcbz,
+                hcdj: rec.hcdj
+            };
+            Ok(ohc)
+        }
     }
 }

@@ -1,13 +1,10 @@
-use async_graphql::{Context, Enum, Object, Subscription, Result};
-use futures::{Stream, StreamExt};
-use super::simple_broker::SimpleBroker;
-use std::time::Duration;
+use async_graphql::{Context, Object, Result};
 use sqlx::SqlitePool;
-
 
 #[derive(Clone)]
 pub struct Xiangmu {
-    pub xmbh: String,
+    pub id: i32,
+    pub xmbh: Option<String>,
     pub xmmc: Option<String>,
     pub xmfzr: Option<String>,
     pub xmlx: Option<String>,
@@ -22,8 +19,11 @@ pub struct Xiangmu {
 
 #[Object]
 impl Xiangmu {
-    async fn xmbh(&self) -> &str {
-        &self.xmbh
+    async fn id(&self) -> &i32 {
+        &self.id
+    }
+    async fn xmbh(&self) -> Option<&String> {
+        self.xmbh.as_ref()
     }
     async fn xmmc(&self) -> Option<&String> {
         self.xmmc.as_ref()
@@ -66,9 +66,9 @@ impl XmQuery {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let recs = sqlx::query!(
             r#"
-                SELECT xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
+                SELECT id,xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
                     FROM xiangmu
-                ORDER BY xmbh DESC
+                ORDER BY id DESC
             "#
         )
         .fetch_all(pool)
@@ -76,6 +76,7 @@ impl XmQuery {
         let mut books: Vec<Xiangmu> = vec![];
         for rec in recs {
             books.push(Xiangmu{
+                id: rec.id,
                 xmbh: rec.xmbh,
                 xmmc: rec.xmmc,
                 xmfzr: rec.xmfzr,
@@ -94,19 +95,20 @@ impl XmQuery {
     async fn xiangmu(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "xmbh of xiangmu")] xmbh: String,
+        #[graphql(desc = "id of xiangmu")] id: i32
     ) -> Result<Xiangmu> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let rec = sqlx::query!(
             r#"
                 SELECT * FROM xiangmu
-                WHERE xmbh = (?1)
+                WHERE id = (?1)
             "#,
-            xmbh
+            id
         )
         .fetch_one(pool)
         .await?;
         let book = Xiangmu{
+            id: rec.id,
             xmbh: rec.xmbh,
             xmmc: rec.xmmc,
             xmfzr: rec.xmfzr,
@@ -128,8 +130,9 @@ pub struct XmMutation;
 
 #[Object]
 impl XmMutation {
-    async fn create_xiangmu(&self, ctx: &Context<'_>, xmbh: String, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
-     gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>, xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>) -> Result<bool> {
+    async fn create_xiangmu(&self, ctx: &Context<'_>, xmbh: Option<String>, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
+     gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>,
+      xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>) -> Result<Xiangmu> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"
@@ -140,20 +143,55 @@ impl XmMutation {
         )
         .execute(&mut pool)
         .await?;
-        // SimpleBroker::publish(BookChanged {
-        //     mutation_type: MutationType::Created,
-        //     id: id.clone(),
-        // });
-        Ok(done > 0)
+        if done == 1 {
+            let rec = sqlx::query!(
+                r#"
+                    SELECT * FROM xiangmu ORDER BY id DESC
+                "#
+            )
+            .fetch_one(pool)
+            .await?;
+            let nxm = Xiangmu{
+                id: rec.id,
+                xmbh: rec.xmbh,
+                xmmc: rec.xmmc,
+                xmfzr: rec.xmfzr,
+                xmlx: rec.xmlx,
+                gclzl: rec.gclzl,
+                gcllr: rec.gcllr,
+                gclsm: rec.gclsm,
+                gclcl: rec.gclcl,
+                xmdd: rec.xmdd,
+                xmbz: rec.xmbz,
+                xmhth: rec.xmhth
+            };
+            Ok(nxm)
+        }else{
+            let oxm = Xiangmu{
+                id: -1,
+                xmbh: xmbh,
+                xmmc: xmmc,
+                xmfzr: xmfzr,
+                xmlx: xmlx,
+                gclzl: gclzl,
+                gcllr: gcllr,
+                gclsm: gclsm,
+                gclcl: gclcl,
+                xmdd: xmdd,
+                xmbz: xmbz,
+                xmhth: xmhth
+            };
+            Ok(oxm)
+        }
     }
 
-    async fn delete_xiangmu(&self, ctx: &Context<'_>, xmbh: String) -> Result<bool> {
+    async fn delete_xiangmu(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
         let pool = ctx.data_unchecked::<SqlitePool>();
      
         let done = sqlx::query!(
             r#"DELETE FROM xiangmu
-                WHERE xmbh = $1"#,
-            xmbh
+                WHERE id = $1"#,
+            id
         )
         .execute(pool)
         .await?;
@@ -170,77 +208,58 @@ impl XmMutation {
         Ok(done > 0)
     }
 
-    async fn change_xiangmu(&self, ctx: &Context<'_>, nxmbh: String, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
-    gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>, xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>, oxmbh: String,) -> Result<bool> {
+    async fn update_xiangmu(&self, ctx: &Context<'_>, id: i32, xmbh: Option<String>, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
+    gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>, xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>) -> Result<Xiangmu> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"UPDATE xiangmu
                 SET xmbh= $1,xmmc= $2,xmfzr= $3,xmlx= $4,gclzl= $5,gcllr= $6,gclsm= $7,gclcl= $8,xmdd= $9,xmbz= $10,xmhth= $11
-                WHERE xmbh = $12"#,
-            nxmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth,oxmbh
+                WHERE id = $12"#,
+            xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth,id
         )
         .execute(pool)
         .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
-}
-
-//订阅
-#[derive(Enum, Eq, PartialEq, Copy, Clone)]
-enum MutationType {
-    Created,
-    Deleted,
-    Changed
-}
-
-#[derive(Clone)]
-struct BookChanged {
-    mutation_type: MutationType,
-    xmbh: String,
-}
-
-#[Object]
-impl BookChanged {
-    async fn mutation_type(&self) -> MutationType {
-        self.mutation_type
-    }
-
-    async fn xmbh(&self) -> &str {
-        &self.xmbh
-    }
-
-}
-
-pub struct XmSubscription;
-
-#[Subscription]
-impl XmSubscription {
-    async fn interval(&self, #[graphql(default = 1)] n: i32) -> impl Stream<Item = i32> {
-        let mut value = 0;
-        tokio::time::interval(Duration::from_secs(1)).map(move |_| {
-            value += n;
-            value
-        })
-    }
-
-    async fn books(&self, mutation_type: Option<MutationType>) -> impl Stream<Item = BookChanged> {
-        SimpleBroker::<BookChanged>::subscribe().filter(move |event| {
-            let res = if let Some(mutation_type) = mutation_type {
-                event.mutation_type == mutation_type
-            } else {
-                true
+        if done == 1 {
+            let nxm = Xiangmu{
+                id: id,
+                xmbh: xmbh,
+                xmmc: xmmc,
+                xmfzr: xmfzr,
+                xmlx: xmlx,
+                gclzl: gclzl,
+                gcllr: gcllr,
+                gclsm: gclsm,
+                gclcl: gclcl,
+                xmdd: xmdd,
+                xmbz: xmbz,
+                xmhth: xmhth
             };
-            async move { res }
-        })
+            Ok(nxm)
+        }else{
+            let rec = sqlx::query!(
+                r#"
+                    SELECT * FROM xiangmu
+                        WHERE id = $1
+                "#,
+                id
+            )
+            .fetch_one(pool)
+            .await?;
+            let oxm = Xiangmu{
+                id: rec.id,
+                xmbh: rec.xmbh,
+                xmmc: rec.xmmc,
+                xmfzr: rec.xmfzr,
+                xmlx: rec.xmlx,
+                gclzl: rec.gclzl,
+                gcllr: rec.gcllr,
+                gclsm: rec.gclsm,
+                gclcl: rec.gclcl,
+                xmdd: rec.xmdd,
+                xmbz: rec.xmbz,
+                xmhth: rec.xmhth
+            };
+            Ok(oxm)
+        }
     }
 }

@@ -1,12 +1,10 @@
-use async_graphql::{Context, Enum, Object, Subscription, Result};
-use futures::{Stream, StreamExt};
-use super::simple_broker::SimpleBroker;
-use std::time::Duration;
+use async_graphql::{Context, Object, Result};
+
 use sqlx::SqlitePool;
 
 #[derive(Clone)]
 pub struct User {
-    pub uid: i32,
+    pub id: i32,
     pub usrn: Option<String>,
     pub upsd: Option<String>,
     pub power: Option<String>,
@@ -14,8 +12,8 @@ pub struct User {
 
 #[Object]
 impl User {
-    async fn uid(&self) -> &i32 {
-        &self.uid
+    async fn id(&self) -> &i32 {
+        &self.id
     }
     async fn usrn(&self) -> Option<&String> {
         self.usrn.as_ref()
@@ -36,9 +34,9 @@ impl UQuery {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let recs = sqlx::query!(
             r#"
-                SELECT uid,usrn,upsd,power
+                SELECT id,usrn,upsd,power
                     FROM user
-                ORDER BY uid DESC
+                ORDER BY id DESC
             "#
         )
         .fetch_all(pool)
@@ -46,7 +44,7 @@ impl UQuery {
         let mut books: Vec<User> = vec![];
         for rec in recs {
             books.push(User{
-                uid: rec.uid,
+                id: rec.id,
                 usrn: rec.usrn,
                 upsd: rec.upsd,
                 power: rec.power
@@ -57,20 +55,20 @@ impl UQuery {
     async fn user(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "uid of user")] uid: String,
+        #[graphql(desc = "uid of user")] id: String,
     ) -> Result<User> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let rec = sqlx::query!(
             r#"
                 SELECT * FROM user
-                WHERE uid = (?1)
+                WHERE id = (?1)
             "#,
-            uid
+            id
         )
         .fetch_one(pool)
         .await?;
         let book = User{
-            uid: rec.uid,
+            id: rec.id,
             usrn: rec.usrn,
             upsd: rec.upsd,
             power: rec.power
@@ -84,15 +82,15 @@ pub struct UMutation;
 
 #[Object]
 impl UMutation {
-    async fn create_user(&self, ctx: &Context<'_>, uid: String, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
+    async fn create_user(&self, ctx: &Context<'_>, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
      -> Result<bool> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"
-            INSERT INTO user(uid,usrn,upsd,power)
-                VALUES (?1,?2,?3,?4)
+            INSERT INTO user(usrn,upsd,power)
+                VALUES (?1,?2,?3)
             "#,
-            uid,usrn,upsd,power
+            usrn,upsd,power
         )
         .execute(&mut pool)
         .await?;
@@ -103,13 +101,13 @@ impl UMutation {
         Ok(done > 0)
     }
 
-    async fn delete_user(&self, ctx: &Context<'_>, uid: String) -> Result<bool> {
+    async fn delete_user(&self, ctx: &Context<'_>, id: String) -> Result<bool> {
         let pool = ctx.data_unchecked::<SqlitePool>();
      
         let done = sqlx::query!(
             r#"DELETE FROM user
-                WHERE uid = $1"#,
-            uid
+                WHERE id = $1"#,
+            id
         )
         .execute(pool)
         .await?;
@@ -126,14 +124,14 @@ impl UMutation {
         Ok(done > 0)
     }
 
-    async fn change_user(&self, ctx: &Context<'_>, nuid: i32, usrn: Option<String>, upsd: Option<String>, power: Option<String>, ouid: i32)
+    async fn change_user(&self, ctx: &Context<'_>, id: i32, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
      -> Result<bool> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"UPDATE user
-                SET uid = $1, usrn = $2, upsd = $3, power = $4
-                WHERE uid = $5"#,
-            nuid,usrn,upsd,power,ouid
+                SET usrn = $1, upsd = $2, power = $3
+                WHERE id = $4"#,
+            usrn,upsd,power,id
         )
         .execute(pool)
         .await?;
@@ -148,55 +146,5 @@ impl UMutation {
         //     Ok(false)
         // }
         Ok(done > 0)
-    }
-}
-
-//订阅
-#[derive(Enum, Eq, PartialEq, Copy, Clone)]
-enum MutationType {
-    Created,
-    Deleted,
-    Changed
-}
-
-#[derive(Clone)]
-struct BookChanged {
-    mutation_type: MutationType,
-    zcbh: String,
-}
-
-#[Object]
-impl BookChanged {
-    async fn mutation_type(&self) -> MutationType {
-        self.mutation_type
-    }
-
-    async fn zcbh(&self) -> &str {
-        &self.zcbh
-    }
-
-}
-
-pub struct SubscriptionRoot;
-
-#[Subscription]
-impl SubscriptionRoot {
-    async fn interval(&self, #[graphql(default = 1)] n: i32) -> impl Stream<Item = i32> {
-        let mut value = 0;
-        tokio::time::interval(Duration::from_secs(1)).map(move |_| {
-            value += n;
-            value
-        })
-    }
-
-    async fn books(&self, mutation_type: Option<MutationType>) -> impl Stream<Item = BookChanged> {
-        SimpleBroker::<BookChanged>::subscribe().filter(move |event| {
-            let res = if let Some(mutation_type) = mutation_type {
-                event.mutation_type == mutation_type
-            } else {
-                true
-            };
-            async move { res }
-        })
     }
 }

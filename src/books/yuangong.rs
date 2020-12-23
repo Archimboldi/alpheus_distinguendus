@@ -1,11 +1,9 @@
-use async_graphql::{Context, Enum, Object, Subscription, Result};
-use futures::{Stream, StreamExt};
-use super::simple_broker::SimpleBroker;
-use std::time::Duration;
+use async_graphql::{Context, Object, Result};
 use sqlx::SqlitePool;
 
 #[derive(Clone)]
 pub struct Yuangong {
+    pub id: i32,
     pub ygxm: String,
     pub ssbm: Option<String>,
     pub szxm: Option<String>,
@@ -20,6 +18,9 @@ pub struct Yuangong {
 
 #[Object]
 impl Yuangong {
+    async fn id(&self) -> &i32 {
+        &self.id
+    }
     async fn ygxm(&self) -> &str {
         &self.ygxm
     }
@@ -60,9 +61,9 @@ impl YgQuery {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let recs = sqlx::query!(
             r#"
-                SELECT ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
+                SELECT id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
                     FROM yuangong
-                ORDER BY sfzh DESC
+                ORDER BY id DESC
             "#
         )
         .fetch_all(pool)
@@ -70,6 +71,7 @@ impl YgQuery {
         let mut books: Vec<Yuangong> = vec![];
         for rec in recs {
             books.push(Yuangong{
+                id: rec.id,
                 ygxm: rec.ygxm,
                 ssbm: rec.ssbm,
                 szxm: rec.szxm,
@@ -87,19 +89,20 @@ impl YgQuery {
     async fn yuangong(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "sfzh of yuangong")] sfzh: String,
+        #[graphql(desc = "sfzh of yuangong")] id: i32,
     ) -> Result<Yuangong> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let rec = sqlx::query!(
             r#"
                 SELECT * FROM yuangong
-                WHERE sfzh = (?1)
+                WHERE id = (?1)
             "#,
-            sfzh
+            id
         )
         .fetch_one(pool)
         .await?;
         let book = Yuangong{
+            id: rec.id,
             ygxm: rec.ygxm,
             ssbm: rec.ssbm,
             szxm: rec.szxm,
@@ -121,7 +124,7 @@ pub struct YgMutation;
 #[Object]
 impl YgMutation {
     async fn create_yuangong(&self, ctx: &Context<'_>, ygxm: String, ssbm: Option<String>, szxm: Option<String>, ygjn: Option<String>,
-     rzsj: Option<String>, rgzl: Option<String>, ygzl: Option<String>, ljgzl: Option<String>, ygbz: Option<String>, sfzh: String) -> Result<bool> {
+     rzsj: Option<String>, rgzl: Option<String>, ygzl: Option<String>, ljgzl: Option<String>, ygbz: Option<String>, sfzh: String) -> Result<Yuangong> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"
@@ -132,20 +135,53 @@ impl YgMutation {
         )
         .execute(&mut pool)
         .await?;
-        // SimpleBroker::publish(BookChanged {
-        //     mutation_type: MutationType::Created,
-        //     id: id.clone(),
-        // });
-        Ok(done > 0)
+        if done == 1 {
+            let rec = sqlx::query!(
+                r#"
+                    SELECT * FROM yuangong ORDER BY id DESC
+                "#
+            )
+            .fetch_one(pool)
+            .await?;
+            let nyg = Yuangong{
+                id: rec.id,
+                ygxm: rec.ygxm,
+                ssbm: rec.ssbm,
+                szxm: rec.szxm,
+                ygjn: rec.ygjn,
+                rzsj: rec.rzsj,
+                rgzl: rec.rgzl,
+                ygzl: rec.ygzl,
+                ljgzl: rec.ljgzl,
+                ygbz: rec.ygbz,
+                sfzh: rec.sfzh
+            };
+            Ok(nyg)
+        }else{
+            let oyg = Yuangong{
+                id: -1,
+                ygxm: ygxm,
+                ssbm: ssbm,
+                szxm: szxm,
+                ygjn: ygjn,
+                rzsj: rzsj,
+                rgzl: rgzl,
+                ygzl: ygzl,
+                ljgzl: ljgzl,
+                ygbz: ygbz,
+                sfzh: sfzh
+            };
+            Ok(oyg)
+        }
     }
 
-    async fn delete_yuangong(&self, ctx: &Context<'_>, sfzh: String) -> Result<bool> {
+    async fn delete_yuangong(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
         let pool = ctx.data_unchecked::<SqlitePool>();
      
         let done = sqlx::query!(
             r#"DELETE FROM yuangong
-                WHERE sfzh = $1"#,
-            sfzh
+                WHERE id = $1"#,
+            id
         )
         .execute(pool)
         .await?;
@@ -162,77 +198,56 @@ impl YgMutation {
         Ok(done > 0)
     }
 
-    async fn change_yuangong(&self, ctx: &Context<'_>, nsfzh: String, ygxm: Option<String>, ssbm: Option<String>, szxm: Option<String>,
-    ygjn: Option<String>, rzsj: Option<String>, rgzl: Option<String>, ygzl: Option<String>, ljgzl: Option<String>, ygbz: Option<String>, osfzh: String) -> Result<bool> {
+    async fn update_yuangong(&self, ctx: &Context<'_>, id: i32, sfzh: String, ygxm: String, ssbm: Option<String>, szxm: Option<String>,
+    ygjn: Option<String>, rzsj: Option<String>, rgzl: Option<String>, ygzl: Option<String>, ljgzl: Option<String>, ygbz: Option<String>) -> Result<Yuangong> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"UPDATE yuangong
                 SET sfzh = $1, ygxm = $2, ssbm = $3, szxm = $4, ygjn = $5, rzsj = $6, rgzl = $7, ygzl = $8, ljgzl = $9, ygbz = $10
-                WHERE sfzh = $11"#,
-            nsfzh,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,osfzh
+                WHERE id = $11"#,
+            sfzh,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,id
         )
         .execute(pool)
         .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
-}
-
-//订阅
-#[derive(Enum, Eq, PartialEq, Copy, Clone)]
-enum MutationType {
-    Created,
-    Deleted,
-    Changed
-}
-
-#[derive(Clone)]
-struct BookChanged {
-    mutation_type: MutationType,
-    zcbh: String,
-}
-
-#[Object]
-impl BookChanged {
-    async fn mutation_type(&self) -> MutationType {
-        self.mutation_type
-    }
-
-    async fn zcbh(&self) -> &str {
-        &self.zcbh
-    }
-
-}
-
-pub struct SubscriptionRoot;
-
-#[Subscription]
-impl SubscriptionRoot {
-    async fn interval(&self, #[graphql(default = 1)] n: i32) -> impl Stream<Item = i32> {
-        let mut value = 0;
-        tokio::time::interval(Duration::from_secs(1)).map(move |_| {
-            value += n;
-            value
-        })
-    }
-
-    async fn books(&self, mutation_type: Option<MutationType>) -> impl Stream<Item = BookChanged> {
-        SimpleBroker::<BookChanged>::subscribe().filter(move |event| {
-            let res = if let Some(mutation_type) = mutation_type {
-                event.mutation_type == mutation_type
-            } else {
-                true
+        if done == 1 {
+            let nyg = Yuangong{
+                id: id,
+                ygxm: ygxm,
+                ssbm: ssbm,
+                szxm: szxm,
+                ygjn: ygjn,
+                rzsj: rzsj,
+                rgzl: rgzl,
+                ygzl: ygzl,
+                ljgzl: ljgzl,
+                ygbz: ygbz,
+                sfzh: sfzh
             };
-            async move { res }
-        })
+            Ok(nyg)
+        }else{
+            let rec = sqlx::query!(
+                r#"
+                    SELECT * FROM yuangong
+                        WHERE id = $1
+                "#,
+                id
+            )
+            .fetch_one(pool)
+            .await?;
+            let oyg = Yuangong{
+                id: rec.id,
+                ygxm: rec.ygxm,
+                ssbm: rec.ssbm,
+                szxm: rec.szxm,
+                ygjn: rec.ygjn,
+                rzsj: rec.rzsj,
+                rgzl: rec.rgzl,
+                ygzl: rec.ygzl,
+                ljgzl: rec.ljgzl,
+                ygbz: rec.ygbz,
+                sfzh: rec.sfzh
+            };
+            Ok(oyg)
+        }
     }
 }

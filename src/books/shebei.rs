@@ -193,7 +193,7 @@ impl SbMutation {
         Ok(done > 0)
     }
 
-    async fn update_todo(&self, ctx: &Context<'_>, id: i32, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>,sblx: Option<String>,
+    async fn update_shebei(&self, ctx: &Context<'_>, id: i32, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>,sblx: Option<String>,
     sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(

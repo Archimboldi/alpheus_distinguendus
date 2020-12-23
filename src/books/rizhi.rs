@@ -1,12 +1,9 @@
-use async_graphql::{Context, Enum, Object, Subscription, Result};
-use futures::{Stream, StreamExt};
-use super::simple_broker::SimpleBroker;
-use std::time::Duration;
+use async_graphql::{Context, Object, Result};
 use sqlx::SqlitePool;
 
 #[derive(Clone)]
 pub struct Rizhi {
-    pub rzid: String,
+    pub id: i32,
     pub cz: Option<String>,
     pub time: Option<String>,
     pub ip: Option<String>,
@@ -15,8 +12,8 @@ pub struct Rizhi {
 
 #[Object]
 impl Rizhi {
-    async fn rzid(&self) -> &str {
-        &self.rzid
+    async fn id(&self) -> &i32 {
+        &self.id
     }
     async fn cz(&self) -> Option<&String> {
         self.cz.as_ref()
@@ -40,9 +37,9 @@ impl RzQuery {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let recs = sqlx::query!(
             r#"
-                SELECT rzid,cz,time,ip,mac
+                SELECT id,cz,time,ip,mac
                     FROM rizhi
-                ORDER BY rzid DESC
+                ORDER BY id DESC
             "#
         )
         .fetch_all(pool)
@@ -50,7 +47,7 @@ impl RzQuery {
         let mut books: Vec<Rizhi> = vec![];
         for rec in recs {
             books.push(Rizhi{
-                rzid: rec.rzid,
+                id: rec.id,
                 cz: rec.cz,
                 time: rec.time,
                 ip: rec.ip,
@@ -62,20 +59,20 @@ impl RzQuery {
     async fn rizhi(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "rzid of rizhi")] rzid: String,
+        #[graphql(desc = "rzid of rizhi")] id: String,
     ) -> Result<Rizhi> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let rec = sqlx::query!(
             r#"
                 SELECT * FROM rizhi
-                WHERE rzid = (?1)
+                WHERE id = (?1)
             "#,
-            rzid
+            id
         )
         .fetch_one(pool)
         .await?;
         let book = Rizhi{
-            rzid: rec.rzid,
+            id: rec.id,
             cz: rec.cz,
             time: rec.time,
             ip: rec.ip,
@@ -90,15 +87,15 @@ pub struct RzMutation;
 
 #[Object]
 impl RzMutation {
-    async fn create_rizhi(&self, ctx: &Context<'_>, rzid: String, cz: Option<String>, time: Option<String>, ip: Option<String>,
+    async fn create_rizhi(&self, ctx: &Context<'_>, cz: Option<String>, time: Option<String>, ip: Option<String>,
      mac: Option<String>) -> Result<bool> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"
-            INSERT INTO rizhi(rzid,cz,time,ip,mac)
-                VALUES (?1,?2,?3,?4,?5)
+            INSERT INTO rizhi(cz,time,ip,mac)
+                VALUES (?1,?2,?3,?4)
             "#,
-            rzid,cz,time,ip,mac
+            cz,time,ip,mac
         )
         .execute(&mut pool)
         .await?;
@@ -109,13 +106,13 @@ impl RzMutation {
         Ok(done > 0)
     }
 
-    async fn delete_rizhi(&self, ctx: &Context<'_>, rzid: String) -> Result<bool> {
+    async fn delete_rizhi(&self, ctx: &Context<'_>, id: String) -> Result<bool> {
         let pool = ctx.data_unchecked::<SqlitePool>();
      
         let done = sqlx::query!(
             r#"DELETE FROM rizhi
-                WHERE rzid = $1"#,
-            rzid
+                WHERE id = $1"#,
+            id
         )
         .execute(pool)
         .await?;
@@ -133,54 +130,4 @@ impl RzMutation {
     }
 
     
-}
-
-//订阅
-#[derive(Enum, Eq, PartialEq, Copy, Clone)]
-enum MutationType {
-    Created,
-    Deleted,
-    Changed
-}
-
-#[derive(Clone)]
-struct BookChanged {
-    mutation_type: MutationType,
-    zcbh: String,
-}
-
-#[Object]
-impl BookChanged {
-    async fn mutation_type(&self) -> MutationType {
-        self.mutation_type
-    }
-
-    async fn zcbh(&self) -> &str {
-        &self.zcbh
-    }
-
-}
-
-pub struct SubscriptionRoot;
-
-#[Subscription]
-impl SubscriptionRoot {
-    async fn interval(&self, #[graphql(default = 1)] n: i32) -> impl Stream<Item = i32> {
-        let mut value = 0;
-        tokio::time::interval(Duration::from_secs(1)).map(move |_| {
-            value += n;
-            value
-        })
-    }
-
-    async fn books(&self, mutation_type: Option<MutationType>) -> impl Stream<Item = BookChanged> {
-        SimpleBroker::<BookChanged>::subscribe().filter(move |event| {
-            let res = if let Some(mutation_type) = mutation_type {
-                event.mutation_type == mutation_type
-            } else {
-                true
-            };
-            async move { res }
-        })
-    }
 }
