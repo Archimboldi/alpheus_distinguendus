@@ -13,13 +13,13 @@ const FIND_XIANGMU = gql`
 const PEIBEI = gql`
   query PeiBei($id:Int!) {
     shebei(id:$id) {
-      zcbh
+      id,sbxh
     },
     yuangong(id:$id) {
-      ygxm
+      id,ygxm
     },
     kehu(id:$id) {
-      khbh
+      id,khbh
     },
   }
 `;
@@ -144,7 +144,14 @@ function AllTable() {
   const ref = React.createRef();
   const [visible, setVisible] = useState(false);
   //抽屉
-  const showDrawer = () => {
+  const [pb, setPb] = useState(1);
+  const {loading:pbloading,error:pberror,data:pbdata,refetch:pbrefetch} = useQuery(PEIBEI,{
+    variables:{"id": pb}
+  });
+  const showDrawer = (val) => {
+    setPb(val);
+    pbrefetch();
+    console.log(pbdata);
     setVisible(true);
   };
   const onClose = () => {
@@ -275,7 +282,7 @@ function AllTable() {
         render: (_text, record) =>
           data.xiangmus.length >= 1 ? (
             <div>
-              <Button type="link" onClick={()=>{showDrawer(record)}}>查看</Button>
+              <Button type="link" onClick={()=>{showDrawer(record.id)}}>查看</Button>
             </div>
           ) : null,
       },
@@ -292,8 +299,8 @@ function AllTable() {
       },
     ];
   if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error :(</p>;
+  if (loading || pbloading) return <p>Loading...</p>;
+  if (error || pberror) return <p>Error :(</p>;
   return (
     <div>
       <Button
@@ -327,7 +334,18 @@ function AllTable() {
         visible={visible}
         width={340}
       >
-   
+        <h3>设备</h3>
+        {pbdata.shebei.map(s => (
+          <p key={s.id}>{s.sbxh}</p>
+        ))}
+        <h3>员工</h3>
+        {pbdata.yuangong.map(y => (
+          <p key={y.id}>{y.ygxm}</p>
+        ))}
+        <h3>客户</h3>
+        {pbdata.kehu.map(k => (
+          <p key={k.id}>{k.khxm}</p>
+        ))}
       </Drawer>
     </div>
   );
