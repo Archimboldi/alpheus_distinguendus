@@ -45,14 +45,16 @@ pub struct KhQuery;
 
 #[Object]
 impl KhQuery {
-    async fn kehus(&self, ctx: &Context<'_>) -> Result<Vec<Kehu>> {
+    async fn kehus(&self, ctx: &Context<'_>, khxm: String) -> Result<Vec<Kehu>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
+        let cc = format!("%{}%", khxm);
         let recs = sqlx::query!(
             r#"
                 SELECT id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
-                    FROM kehu
+                    FROM kehu WHERE khxm LIKE $1
                 ORDER BY id DESC
-            "#
+            "#,
+            cc
         )
         .fetch_all(pool)
         .await?;
@@ -74,29 +76,32 @@ impl KhQuery {
     async fn kehu(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "khbh of kehu")] id: i32
-    ) -> Result<Kehu> {
+        id: i32
+    ) -> Result<Vec<Kehu>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
-        let rec = sqlx::query!(
+        let kehus = sqlx::query!(
             r#"
                 SELECT * FROM kehu
-                WHERE khbh = (?1)
+                WHERE ssxm = (?1)
             "#,
             id
         )
-        .fetch_one(pool)
+        .fetch_all(pool)
         .await?;
-        let book = Kehu{
-            id: rec.id,
-            khbh: rec.khbh,
-            khxm: rec.khxm,
-            ssxm: rec.ssxm,
-            khxb: rec.khxb,
-            khgx: rec.khgx,
-            khbz: rec.khbz,
-            khlx: rec.khlx
+        let mut ks: Vec<Kehu> = vec![];
+        for rec in kehus {
+            ks.push(Kehu{
+                id: rec.id,
+                khbh: rec.khbh,
+                khxm: rec.khxm,
+                ssxm: rec.ssxm,
+                khxb: rec.khxb,
+                khgx: rec.khgx,
+                khbz: rec.khbz,
+                khlx: rec.khlx
+            });
         };
-        Ok(book)
+        Ok(ks)
     }
 
 }
@@ -151,28 +156,28 @@ impl KhMutation {
         }
     }
 
-    async fn delete_kehu(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+    // async fn delete_kehu(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
+    //     let pool = ctx.data_unchecked::<SqlitePool>();
      
-        let done = sqlx::query!(
-            r#"DELETE FROM kehu
-                WHERE id = $1"#,
-            id
-        )
-        .execute(pool)
-        .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
+    //     let done = sqlx::query!(
+    //         r#"DELETE FROM kehu
+    //             WHERE id = $1"#,
+    //         id
+    //     )
+    //     .execute(pool)
+    //     .await?;
+    //     // if books.contains(id) {
+    //     //     books.remove(id);
+    //     //     SimpleBroker::publish(BookChanged {
+    //     //         mutation_type: MutationType::Deleted,
+    //     //         id: id.into(),
+    //     //     });
+    //     //     Ok(true)
+    //     // } else {
+    //     //     Ok(false)
+    //     // }
+    //     Ok(done > 0)
+    // }
 
     async fn update_kehu(&self, ctx: &Context<'_>, id: i32, khbh: Option<String>, khxm: String, ssxm: Option<String>, khxb: Option<String>,
     khgx: Option<String>, khbz: Option<String>, khlx: Option<String>) -> Result<Kehu> {

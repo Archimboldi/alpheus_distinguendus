@@ -2,103 +2,87 @@ import React, {useState} from 'react';
 import { Table, Button, Form, Modal, Input } from 'antd';
 import { gql, useQuery, useMutation } from '@apollo/client';
 
-const GET_SHEBEIS = gql`
+const GET_KEHUS = gql`
   query{
-    shebeis{
-      id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+    kehus{
+      id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
     }
   }
 `
-const ADD_SHEBEI = gql`
-  mutation CreateShebei($zcbh:String!,$szbm:String!,$szxm:String!,$sblx:String!,
-    $sbpp:String!,$sbxh:String!,$xlh:String!,$smcs:String!,$sbbz:String!){
-    createShebei(zcbh:$zcbh,szbm:$szbm,szxm:$szxm,sblx:$sblx,sbpp:$sbpp,
-      sbxh:$sbxh,xlh:$xlh,smcs:$smcs,sbbz:$sbbz){
-        id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+const ADD_KEHU = gql`
+  mutation CreateKehu($khbh:String!,$khxm:String!,$ssxm:String!,$khxb:String!,$khgx:String!,$khbz:String!,$khlx:String!){
+    createKehu(khbh:$khbh,khxm:$khxm,ssxm:$ssxm,khxb:$khxb,khgx:$khgx,khbz:$khbz,khlx:$khlx){
+        id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
       }
   }
 `;
-const UPDATE_SHEBEI = gql`
-  mutation UpdateShebei($id:Int!,$zcbh:String!,$szbm:String!,$szxm:String!,$sblx:String!,
-    $sbpp:String!,$sbxh:String!,$xlh:String!,$smcs:String!,$sbbz:String!){
-    updateShebei(id:$id,zcbh:$zcbh,szbm:$szbm,szxm:$szxm,sblx:$sblx,sbpp:$sbpp,
-      sbxh:$sbxh,xlh:$xlh,smcs:$smcs,sbbz:$sbbz){
-        id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+const UPDATE_KEHU = gql`
+  mutation UpdateKehu($id:Int!,$khbh:String!,$khxm:String!,$ssxm:String!,$khxb:String!,$khgx:String!,$khbz:String!,$khlx:String!){
+    updateKehu(id:$id,khbh:$khbh,khxm:$khxm,ssxm:$ssxm,khxb:$khxb,khgx:$khgx,khbz:$khbz,khlx:$khlx){
+        id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
       }
   }
 `;
 const AddForm = React.forwardRef((props, ref) => (
     <Form
       name="basic"
-      initialValues={{ zcbh: props.row.zcbh, szbm: props.row.szbm, szxm: props.row.szxm,
-        sblx: props.row.sblx, sbpp: props.row.sbpp, sbxh: props.row.sbxh,
-        xlh: props.row.xlh, smcs: props.row.smcs, sbbz: props.row.sbbz }}
+      initialValues={{ khbh: props.row.khbh, khxm: props.row.khxm, ssxm: props.row.ssxm,
+        khxb: props.row.khxb, khgx: props.row.khgx, khbz: props.row.khbz, khlx: props.row.khlx }}
       preserve={false}
       ref = {ref}
+      labelCol={{ span: 7 }}
+      wrapperCol={{ span: 14 }}
     >
       <Form.Item
-        label="资产编号"
-        name="zcbh"
+        label="客户编号"
+        name="khbh"
         rules={[{ required: true, message: 'Please input zcbh!' }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="所在项目"
-        name="szxm"
+        label="客户姓名"
+        name="khxm"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="所在部门"
-        name="szbm"
+        label="所属项目"
+        name="ssxm"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="设备类型"
-        name="sblx"
+        label="客户性别"
+        name="khxb"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="设备品牌"
-        name="sbpp"
+        label="客户关系"
+        name="khgx"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="设备型号"
-        name="sbxh"
+        label="客户备注"
+        name="khbz"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="序列号"
-        name="xlh"
+        label="联系方式"
+        name="khlx"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
-      <Form.Item
-        label="扫描次数"
-        name="smcs"
-        rules={[{ required: true }]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        label="设备备注"
-        name="sbbz"
-        rules={[{ required: true }]}
-      >
-        <Input />
-      </Form.Item>
+
     </Form>
 ));
 
@@ -106,38 +90,35 @@ function AllTable() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
-  const [addShebei] = useMutation(ADD_SHEBEI, {
-    update(cache, { data: { createShebei } }) {
+  const [addKehu] = useMutation(ADD_KEHU, {
+    update(cache, { data: { createKehu } }) {
       cache.modify({
         fields: {
-          shebeis(existingShebeis = []) {
-            const newShebeiRef = cache.writeFragment({
-              data: createShebei,
+          kehus(existingKehus = []) {
+            const newKehuRef = cache.writeFragment({
+              data: createKehu,
               fragment: gql`
-                fragment NewShebei on Shebei {
+                fragment NewKehu on Kehu {
                   id
-                  zcbh
-                  szxm
-                  szbm
-                  sblx
-                  sbpp
-                  sbxh
-                  xlh
-                  smcs
-                  sbbz
-                  xlh
+                  khbh
+                  khxm
+                  ssxm
+                  khxb
+                  khgx
+                  khbz
+                  khlx
                 }
               `
             });
-            return [...existingShebeis, newShebeiRef];
+            return [...existingKehus, newKehuRef];
           }
         }
       });
     }
   });
-  const [updateShebei] = useMutation(UPDATE_SHEBEI);
+  const [updateKehu] = useMutation(UPDATE_KEHU);
   const showModal = () => {
-    setRowdata({id:0,zcbh:'',szbm:'',szxm:'',sblx:'',sbpp:'',sbxh:'',xlh:'',smcs:'',sbbz:''});
+    setRowdata({id:0,khbh:'',khxm:'',ssxm:'',khxb:'',khgx:'',khbz:'',khlx:''});
     setIsModalVisible(true);
   };
   const editModal = (value) => {
@@ -147,11 +128,11 @@ function AllTable() {
   const handleOk = () => {
     var val = ref.current.getFieldValue();
     if (rowdata.id === 0){
-      addShebei({variables: {zcbh:val.zcbh,szbm:val.szbm,szxm:val.szxm,sblx:val.sblx,
-        sbpp:val.sbpp,sbxh:val.sbxh,xlh:val.xlh,smcs:val.smcs,sbbz:val.sbbz}})
+      addKehu({variables: {khbh: val.khbh, khxm: val.khxm, ssxm: val.ssxm,
+        khxb: val.khxb, khgx: val.khgx, khbz: val.khbz, khlx: val.khlx}})
     }else {
-      updateShebei({variables: {id:rowdata.id,zcbh:val.zcbh,szbm:val.szbm,szxm:val.szxm,sblx:val.sblx,
-        sbpp:val.sbpp,sbxh:val.sbxh,xlh:val.xlh,smcs:val.smcs,sbbz:val.sbbz}})
+      updateKehu({variables: {id:rowdata.id,khbh: val.khbh, khxm: val.khxm, ssxm: val.ssxm,
+        khxb: val.khxb, khgx: val.khgx, khbz: val.khbz, khlx: val.khlx}})
     }
 
     setIsModalVisible(false);
@@ -160,52 +141,44 @@ function AllTable() {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-  const { loading: queryLoading, error: queryError, data } = useQuery(GET_SHEBEIS);
+  const { loading: queryLoading, error: queryError, data } = useQuery(GET_KEHUS);
   const columns = [
     {
-      title: '资产编号',
-      dataIndex: 'zcbh',
+      title: '客户编号',
+      dataIndex: 'khbh',
       width: '14%',
     },
     {
-      title: '所在项目',
-      dataIndex: 'szxm',
+      title: '客户姓名',
+      dataIndex: 'khxm',
     },
     {
-      title: '所在部门',
-      dataIndex: 'szbm',
+      title: '所属项目',
+      dataIndex: 'ssxm',
     },
     {
-      title: '设备类型',
-      dataIndex: 'sblx',
+      title: '客户性别',
+      dataIndex: 'khxb',
     },
     {
-      title: '设备品牌',
-      dataIndex: 'sbpp',
+      title: '客户关系',
+      dataIndex: 'khgx',
     },
     {
-      title: '设备型号',
-      dataIndex: 'sbxh',
+      title: '客户备注',
+      dataIndex: 'khbz',
     },
     {
-      title: '扫描次数',
-      dataIndex: 'smcs',
-    },
-    {
-      title: '设备备注',
-      dataIndex: 'sbbz',
-    },
-    {
-      title: '序列号',
-      dataIndex: 'xlh',
+      title: '联系方式',
+      dataIndex: 'khlx',
     },
     {
       title: '操作',
       dataIndex: 'operation',
       render: (_text, record) =>
-        data.shebeis.length >= 1 ? (
+        data.kehus.length >= 1 ? (
           <div>
-            <Button type="link" onClick={()=>{editModal(record)}}>调拨</Button>
+            <Button type="link" onClick={()=>{editModal(record)}}>变更</Button>
           </div>
         ) : null,
     },
@@ -223,12 +196,12 @@ function AllTable() {
       >
         新增
       </Button>
-      <Modal title="新增设备" visible={isModalVisible} onOk={handleOk}
+      <Modal title="客户信息" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>
       </Modal>
       <Table
-        dataSource={data.shebeis}
+        dataSource={data.kehus}
         columns={columns}
         rowKey={row=>row.id}
       />
@@ -236,7 +209,7 @@ function AllTable() {
   );
 }
 
-function Shebei() {
+function Kehu() {
   return(
     <div>
       <AllTable />
@@ -244,4 +217,4 @@ function Shebei() {
   )
 }
 
-export default Shebei;
+export default Kehu;

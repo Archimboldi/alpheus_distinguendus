@@ -1,6 +1,7 @@
 use async_graphql::{Context, Object, Result};
 use sqlx::SqlitePool;
 
+
 #[derive(Clone)]
 pub struct Xiangmu {
     pub id: i32,
@@ -16,6 +17,7 @@ pub struct Xiangmu {
     pub xmbz: Option<String>,
     pub xmhth: Option<String>
 }
+
 
 #[Object]
 impl Xiangmu {
@@ -62,14 +64,19 @@ pub struct XmQuery;
 
 #[Object]
 impl XmQuery {
-    async fn xiangmus(&self, ctx: &Context<'_>) -> Result<Vec<Xiangmu>> {
+    async fn xiangmus(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(desc = "xmmc of xiangmu")] xmmc: String
+    ) -> Result<Vec<Xiangmu>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
+        let cc = format!("%{}%", xmmc);
         let recs = sqlx::query!(
             r#"
-                SELECT id,xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
-                    FROM xiangmu
-                ORDER BY id DESC
-            "#
+                SELECT * FROM xiangmu
+                WHERE xmmc LIKE $1
+            "#,
+            cc
         )
         .fetch_all(pool)
         .await?;
@@ -92,38 +99,7 @@ impl XmQuery {
         }
         Ok(books)
     }
-    async fn xiangmu(
-        &self,
-        ctx: &Context<'_>,
-        #[graphql(desc = "id of xiangmu")] id: i32
-    ) -> Result<Xiangmu> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
-        let rec = sqlx::query!(
-            r#"
-                SELECT * FROM xiangmu
-                WHERE id = (?1)
-            "#,
-            id
-        )
-        .fetch_one(pool)
-        .await?;
-        let book = Xiangmu{
-            id: rec.id,
-            xmbh: rec.xmbh,
-            xmmc: rec.xmmc,
-            xmfzr: rec.xmfzr,
-            xmlx: rec.xmlx,
-            gclzl: rec.gclzl,
-            gcllr: rec.gcllr,
-            gclsm: rec.gclsm,
-            gclcl: rec.gclcl,
-            xmdd: rec.xmdd,
-            xmbz: rec.xmbz,
-            xmhth: rec.xmhth
-        };
-        Ok(book)
-    }
-
+    
 }
 
 pub struct XmMutation;
@@ -185,28 +161,28 @@ impl XmMutation {
         }
     }
 
-    async fn delete_xiangmu(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+    // async fn delete_xiangmu(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
+    //     let pool = ctx.data_unchecked::<SqlitePool>();
      
-        let done = sqlx::query!(
-            r#"DELETE FROM xiangmu
-                WHERE id = $1"#,
-            id
-        )
-        .execute(pool)
-        .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
+    //     let done = sqlx::query!(
+    //         r#"DELETE FROM xiangmu
+    //             WHERE id = $1"#,
+    //         id
+    //     )
+    //     .execute(pool)
+    //     .await?;
+    //     // if books.contains(id) {
+    //     //     books.remove(id);
+    //     //     SimpleBroker::publish(BookChanged {
+    //     //         mutation_type: MutationType::Deleted,
+    //     //         id: id.into(),
+    //     //     });
+    //     //     Ok(true)
+    //     // } else {
+    //     //     Ok(false)
+    //     // }
+    //     Ok(done > 0)
+    // }
 
     async fn update_xiangmu(&self, ctx: &Context<'_>, id: i32, xmbh: Option<String>, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
     gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>, xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>) -> Result<Xiangmu> {

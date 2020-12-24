@@ -5,8 +5,11 @@ import { Layout, Menu } from 'antd';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
+  AuditOutlined,
+  ContactsFilled,
+  BoxPlotFilled,
+  TeamOutlined,
+  AppstoreAddOutlined
 } from '@ant-design/icons';
 import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import Shebei from './Pages/Shebei';
@@ -30,29 +33,28 @@ class App extends React.Component {
       <Layout>
         <Router>
           <Sider trigger={null} collapsible collapsed={this.state.collapsed}>
-            <div className="logo" />
-            <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-              <Menu.Item key="1" icon={<UserOutlined />}>
+            <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']} style={{marginTop:70}}>
+              <Menu.Item key="1" icon={<AuditOutlined />}>
                 <Link to="/xiangmu" style={{color:"#7a7a7a"}}>
                   项目
                 </Link>
               </Menu.Item>
-              <Menu.Item key="2" icon={<VideoCameraOutlined />}>
+              <Menu.Item key="2" icon={<BoxPlotFilled />}>
                 <Link to="/shebei" style={{color:"#7a7a7a"}}>
                   设备
                 </Link>
               </Menu.Item>
-              <Menu.Item key="3" icon={<VideoCameraOutlined />}>
+              <Menu.Item key="3" icon={<ContactsFilled />}>
                 <Link to="/kehu" style={{color:"#7a7a7a"}}>
                   客户
                 </Link>
               </Menu.Item>
-              <Menu.Item key="4" icon={<VideoCameraOutlined />}>
+              <Menu.Item key="4" icon={<TeamOutlined />}>
                 <Link to="/yuangong" style={{color:"#7a7a7a"}}>
                   员工
                 </Link>
               </Menu.Item>
-              <Menu.Item key="5" icon={<VideoCameraOutlined />}>
+              <Menu.Item key="5" icon={<AppstoreAddOutlined />}>
                 <Link to="/haocai" style={{color:"#7a7a7a"}}>
                   耗材
                 </Link>

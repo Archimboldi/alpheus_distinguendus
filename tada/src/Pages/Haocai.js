@@ -2,99 +2,81 @@ import React, {useState} from 'react';
 import { Table, Button, Form, Modal, Input } from 'antd';
 import { gql, useQuery, useMutation } from '@apollo/client';
 
-const GET_SHEBEIS = gql`
+const GET_HAOCAIS = gql`
   query{
-    shebeis{
-      id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+    haocais{
+      id,hcmc,gg,sl,dw,lj,hcbz,hcdj
     }
   }
 `
-const ADD_SHEBEI = gql`
-  mutation CreateShebei($zcbh:String!,$szbm:String!,$szxm:String!,$sblx:String!,
-    $sbpp:String!,$sbxh:String!,$xlh:String!,$smcs:String!,$sbbz:String!){
-    createShebei(zcbh:$zcbh,szbm:$szbm,szxm:$szxm,sblx:$sblx,sbpp:$sbpp,
-      sbxh:$sbxh,xlh:$xlh,smcs:$smcs,sbbz:$sbbz){
-        id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+const ADD_HAOCAI = gql`
+  mutation CreateHaocai($hcmc:String!,$gg:String!,$sl:String!,$dw:String!,$lj:String!,$hcbz:String!,$hcdj:String!){
+    createHaocai(hcmc:$hcmc,gg:$gg,sl:$sl,dw:$dw,lj:$lj,hcbz:$hcbz,hcdj:$hcdj){
+        id,hcmc,gg,sl,dw,lj,hcbz,hcdj
       }
   }
 `;
-const UPDATE_SHEBEI = gql`
-  mutation UpdateShebei($id:Int!,$zcbh:String!,$szbm:String!,$szxm:String!,$sblx:String!,
-    $sbpp:String!,$sbxh:String!,$xlh:String!,$smcs:String!,$sbbz:String!){
-    updateShebei(id:$id,zcbh:$zcbh,szbm:$szbm,szxm:$szxm,sblx:$sblx,sbpp:$sbpp,
-      sbxh:$sbxh,xlh:$xlh,smcs:$smcs,sbbz:$sbbz){
-        id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+const UPDATE_HAOCAI = gql`
+  mutation UpdateHaocai($id:Int!,$hcmc:String!,$gg:String!,$sl:String!,$dw:String!,$lj:String!,$hcbz:String!,$hcdj:String!){
+    updateHaocai(id:$id,hcmc:$hcmc,gg:$gg,sl:$sl,dw:$dw,lj:$lj,hcbz:$hcbz,hcdj:$hcdj){
+        id,hcmc,gg,sl,dw,lj,hcbz,hcdj
       }
   }
 `;
 const AddForm = React.forwardRef((props, ref) => (
     <Form
       name="basic"
-      initialValues={{ zcbh: props.row.zcbh, szbm: props.row.szbm, szxm: props.row.szxm,
-        sblx: props.row.sblx, sbpp: props.row.sbpp, sbxh: props.row.sbxh,
-        xlh: props.row.xlh, smcs: props.row.smcs, sbbz: props.row.sbbz }}
+      initialValues={{ hcmc: props.row.hcmc,gg: props.row.gg,sl: props.row.sl,dw: props.row.dw,lj: props.row.lj,hcbz: props.row.hcbz,hcdj: props.row.hcdj }}
       preserve={false}
       ref = {ref}
+      labelCol={{ span: 7 }}
+      wrapperCol={{ span: 14 }}
     >
       <Form.Item
-        label="资产编号"
-        name="zcbh"
-        rules={[{ required: true, message: 'Please input zcbh!' }]}
+        label="耗材名称"
+        name="hcmc"
+        rules={[{ required: true, message: 'Please input hcmc!' }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="所在项目"
-        name="szxm"
+        label="规格"
+        name="gg"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="所在部门"
-        name="szbm"
+        label="数量"
+        name="sl"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="设备类型"
-        name="sblx"
+        label="单位"
+        name="dw"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="设备品牌"
-        name="sbpp"
+        label="链接"
+        name="lj"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="设备型号"
-        name="sbxh"
+        label="备注"
+        name="hcbz"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="序列号"
-        name="xlh"
-        rules={[{ required: true }]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        label="扫描次数"
-        name="smcs"
-        rules={[{ required: true }]}
-      >
-        <Input />
-      </Form.Item>
-      <Form.Item
-        label="设备备注"
-        name="sbbz"
+        label="单价"
+        name="dj"
         rules={[{ required: true }]}
       >
         <Input />
@@ -106,38 +88,35 @@ function AllTable() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
-  const [addShebei] = useMutation(ADD_SHEBEI, {
-    update(cache, { data: { createShebei } }) {
+  const [addHaocai] = useMutation(ADD_HAOCAI, {
+    update(cache, { data: { createHaocai } }) {
       cache.modify({
         fields: {
-          shebeis(existingShebeis = []) {
-            const newShebeiRef = cache.writeFragment({
-              data: createShebei,
+          haocais(existingHaocais = []) {
+            const newHaocaiRef = cache.writeFragment({
+              data: createHaocai,
               fragment: gql`
-                fragment NewShebei on Shebei {
+                fragment NewHaocai on Haocai {
                   id
-                  zcbh
-                  szxm
-                  szbm
-                  sblx
-                  sbpp
-                  sbxh
-                  xlh
-                  smcs
-                  sbbz
-                  xlh
+                  hcmc
+                  gg
+                  sl
+                  dw
+                  lj
+                  hcbz
+                  hcdj
                 }
               `
             });
-            return [...existingShebeis, newShebeiRef];
+            return [...existingHaocais, newHaocaiRef];
           }
         }
       });
     }
   });
-  const [updateShebei] = useMutation(UPDATE_SHEBEI);
+  const [updateHaocai] = useMutation(UPDATE_HAOCAI);
   const showModal = () => {
-    setRowdata({id:0,zcbh:'',szbm:'',szxm:'',sblx:'',sbpp:'',sbxh:'',xlh:'',smcs:'',sbbz:''});
+    setRowdata({id:0,hcmc:'',gg:'',sl:'',dw:'',lj:'',hcbz:'',hcdj:''});
     setIsModalVisible(true);
   };
   const editModal = (value) => {
@@ -147,11 +126,9 @@ function AllTable() {
   const handleOk = () => {
     var val = ref.current.getFieldValue();
     if (rowdata.id === 0){
-      addShebei({variables: {zcbh:val.zcbh,szbm:val.szbm,szxm:val.szxm,sblx:val.sblx,
-        sbpp:val.sbpp,sbxh:val.sbxh,xlh:val.xlh,smcs:val.smcs,sbbz:val.sbbz}})
+      addHaocai({variables: {hcmc:val.hcmc,gg:val.gg,sl:val.sl,dw:val.dw,lj:val.lj,hcbz:val.hcbz,hcdj:val.hcdj}})
     }else {
-      updateShebei({variables: {id:rowdata.id,zcbh:val.zcbh,szbm:val.szbm,szxm:val.szxm,sblx:val.sblx,
-        sbpp:val.sbpp,sbxh:val.sbxh,xlh:val.xlh,smcs:val.smcs,sbbz:val.sbbz}})
+      updateHaocai({variables: {id:rowdata.id,hcmc:val.hcmc,gg:val.gg,sl:val.sl,dw:val.dw,lj:val.lj,hcbz:val.hcbz,hcdj:val.hcdj}})
     }
 
     setIsModalVisible(false);
@@ -160,52 +137,40 @@ function AllTable() {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-  const { loading: queryLoading, error: queryError, data } = useQuery(GET_SHEBEIS);
+  const { loading: queryLoading, error: queryError, data } = useQuery(GET_HAOCAIS);
   const columns = [
     {
-      title: '资产编号',
-      dataIndex: 'zcbh',
+      title: '耗材名称',
+      dataIndex: 'hcmc',
       width: '14%',
     },
     {
-      title: '所在项目',
-      dataIndex: 'szxm',
+      title: '规格',
+      dataIndex: 'gg',
     },
     {
-      title: '所在部门',
-      dataIndex: 'szbm',
+      title: '库存',
+      dataIndex: 'sl',
     },
     {
-      title: '设备类型',
-      dataIndex: 'sblx',
+      title: '链接',
+      dataIndex: 'lj',
     },
     {
-      title: '设备品牌',
-      dataIndex: 'sbpp',
+      title: '耗材备注',
+      dataIndex: 'hcbz',
     },
     {
-      title: '设备型号',
-      dataIndex: 'sbxh',
-    },
-    {
-      title: '扫描次数',
-      dataIndex: 'smcs',
-    },
-    {
-      title: '设备备注',
-      dataIndex: 'sbbz',
-    },
-    {
-      title: '序列号',
-      dataIndex: 'xlh',
+      title: '耗材单价',
+      dataIndex: 'hcdj',
     },
     {
       title: '操作',
       dataIndex: 'operation',
       render: (_text, record) =>
-        data.shebeis.length >= 1 ? (
+        data.haocais.length >= 1 ? (
           <div>
-            <Button type="link" onClick={()=>{editModal(record)}}>调拨</Button>
+            <Button type="link" onClick={()=>{editModal(record)}}>采购</Button>
           </div>
         ) : null,
     },
@@ -223,12 +188,12 @@ function AllTable() {
       >
         新增
       </Button>
-      <Modal title="新增设备" visible={isModalVisible} onOk={handleOk}
+      <Modal title="耗材详情" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>
       </Modal>
       <Table
-        dataSource={data.shebeis}
+        dataSource={data.haocais}
         columns={columns}
         rowKey={row=>row.id}
       />
@@ -236,7 +201,7 @@ function AllTable() {
   );
 }
 
-function Shebei() {
+function Haocai() {
   return(
     <div>
       <AllTable />
@@ -244,4 +209,4 @@ function Shebei() {
   )
 }
 
-export default Shebei;
+export default Haocai;

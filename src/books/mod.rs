@@ -8,6 +8,7 @@ pub mod rizhi;
 pub mod user;
 pub mod file;
 
+
 #[derive(MergedObject)]
 pub struct QueryRoot(pub xiangmu::XmQuery, pub shebei::SbQuery, pub kehu::KhQuery,
     pub yuangong::YgQuery, pub haocai::HcQuery, pub rizhi::RzQuery, pub user::UQuery, pub file::FileQuery);

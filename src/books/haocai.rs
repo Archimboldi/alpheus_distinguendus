@@ -152,28 +152,28 @@ impl HcMutation {
         }
     }
 
-    async fn delete_haocai(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+    // async fn delete_haocai(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
+    //     let pool = ctx.data_unchecked::<SqlitePool>();
      
-        let done = sqlx::query!(
-            r#"DELETE FROM haocai
-                WHERE id = $1"#,
-            id
-        )
-        .execute(pool)
-        .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
+    //     let done = sqlx::query!(
+    //         r#"DELETE FROM haocai
+    //             WHERE id = $1"#,
+    //         id
+    //     )
+    //     .execute(pool)
+    //     .await?;
+    //     // if books.contains(id) {
+    //     //     books.remove(id);
+    //     //     SimpleBroker::publish(BookChanged {
+    //     //         mutation_type: MutationType::Deleted,
+    //     //         id: id.into(),
+    //     //     });
+    //     //     Ok(true)
+    //     // } else {
+    //     //     Ok(false)
+    //     // }
+    //     Ok(done > 0)
+    // }
 
     async fn change_haocai(&self, ctx: &Context<'_>, id:i32, hcmc: Option<String>, gg: Option<String>, sl: Option<String>, dw: Option<String>,
     lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>) -> Result<Haocai> {

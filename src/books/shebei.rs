@@ -54,14 +54,16 @@ pub struct SbQuery;
 
 #[Object]
 impl SbQuery {
-    async fn shebeis(&self, ctx: &Context<'_>) -> Result<Vec<Shebei>> {
+    async fn shebeis(&self, ctx: &Context<'_>,sbxh:String) -> Result<Vec<Shebei>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
+        let cc = format!("%{}%", sbxh);
         let recs = sqlx::query!(
             r#"
                 SELECT id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz
-                    FROM shebei
+                    FROM shebei WHERE sbxh like $1
                 ORDER BY id DESC
-            "#
+            "#,
+            cc
         )
         .fetch_all(pool)
         .await?;
@@ -85,32 +87,34 @@ impl SbQuery {
     async fn shebei(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "id of shebei")]
-        id: String,
-    ) -> Result<Shebei> {
+        id: i32,
+    ) -> Result<Vec<Shebei>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
-        let rec = sqlx::query!(
+        let shebeis = sqlx::query!(
             r#"
                 SELECT * FROM shebei
-                WHERE id = (?1)
+                WHERE szxm = (?1)
             "#,
             id
         )
-        .fetch_one(pool)
+        .fetch_all(pool)
         .await?;
-        let book = Shebei{
-            id: rec.id,
-            zcbh: rec.zcbh,
-            szbm: rec.szbm,
-            szxm: rec.szxm,
-            sblx: rec.sblx,
-            sbpp: rec.sbpp,
-            sbxh: rec.sbxh,
-            xlh: rec.xlh,
-            smcs: rec.smcs,
-            sbbz: rec.sbbz
+        let mut ss: Vec<Shebei> = vec![];
+        for rec in shebeis {
+            ss.push(Shebei{
+                id: rec.id,
+                zcbh: rec.zcbh,
+                szbm: rec.szbm,
+                szxm: rec.szxm,
+                sblx: rec.sblx,
+                sbpp: rec.sbpp,
+                sbxh: rec.sbxh,
+                xlh: rec.xlh,
+                smcs: rec.smcs,
+                sbbz: rec.sbbz
+            });
         };
-        Ok(book)
+        Ok(ss)
     }
 
 }
@@ -170,28 +174,39 @@ impl SbMutation {
         
     }
 
-    async fn delete_shebei(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
-     
-        let done = sqlx::query!(
-            r#"DELETE FROM shebei
-                WHERE id = $1"#,
-                id
-        )
-        .execute(pool)
-        .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
+    // async fn delete_shebei(&self, ctx: &Context<'_>, id: i32) -> Result<Shebei> {
+    //     let pool = ctx.data_unchecked::<SqlitePool>();
+        
+    //     let rec = sqlx::query!(
+    //         r#"SELECT * FROM shebei
+    //             WHERE id = $1
+    //         "#,
+    //         id
+    //     )
+    //     .fetch_one(pool)
+    //     .await?;
+    //     let book = Shebei{
+    //         id: rec.id,
+    //         zcbh: rec.zcbh,
+    //         szbm: rec.szbm,
+    //         szxm: rec.szxm,
+    //         sblx: rec.sblx,
+    //         sbpp: rec.sbpp,
+    //         sbxh: rec.sbxh,
+    //         xlh: rec.xlh,
+    //         smcs: rec.smcs,
+    //         sbbz: rec.sbbz
+    //     };
+    //     let _done = sqlx::query!(
+    //         r#"DELETE FROM shebei
+    //             WHERE id = $1"#,
+    //             id
+    //     )
+    //     .execute(pool)
+    //     .await?;
+
+    //     Ok(book)
+    // }
 
     async fn update_shebei(&self, ctx: &Context<'_>, id: i32, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>,sblx: Option<String>,
     sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei> {

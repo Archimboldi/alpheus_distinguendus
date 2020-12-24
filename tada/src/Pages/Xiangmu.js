@@ -1,14 +1,28 @@
 import React, {useState} from 'react';
-import { Table, Button, Form, Modal, Input } from 'antd';
-import { gql, useQuery, useMutation } from '@apollo/client';
+import { Table, Button, Form, Modal, Input, Drawer } from 'antd';
+import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
+const { Search } = Input;
 
-const GET_XIANGMUS = gql`
-  query{
-    xiangmus {
+const FIND_XIANGMU = gql`
+  query FindXiang($xmmc:String!){
+    xiangmus(xmmc: $xmmc) {
         id,xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
     }
   }
-`
+`;
+const PEIBEI = gql`
+  query PeiBei($id:Int!) {
+    shebei(id:$id) {
+      zcbh
+    },
+    yuangong(id:$id) {
+      ygxm
+    },
+    kehu(id:$id) {
+      khbh
+    },
+  }
+`;
 const ADD_XIANGMU = gql`
   mutation CreateXiangmu($xmbh:String!,$xmmc:String!,$xmfzr:String!,$xmlx:String!,
     $gclzl:String!,$gcllr:String!,$gclsm:String!,$gclcl:String!,$xmdd:String!,$xmbz:String!,$xmhth:String!){
@@ -35,6 +49,8 @@ const AddForm = React.forwardRef((props, ref) => (
         gclsm: props.row.gclsm, gclcl: props.row.gclcl, xmdd: props.row.xmdd,xmbz: props.row.xmbz,xmhth: props.row.xmhth }}
       preserve={false}
       ref = {ref}
+      labelCol={{ span: 7 }}
+      wrapperCol={{ span: 14 }}
     >
       <Form.Item
         label="项目编号"
@@ -117,9 +133,29 @@ const AddForm = React.forwardRef((props, ref) => (
 ));
 
 function AllTable() {
+  //搜索
+  const [keyword, SetKeyword] = useState("");
+  const {loading, error, data, refetch, networkStatus} = useQuery(FIND_XIANGMU,{
+    variables:{"xmmc": keyword}
+  });
+  //录入界面
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
+  const [visible, setVisible] = useState(false);
+  //抽屉
+  const showDrawer = () => {
+    setVisible(true);
+  };
+  const onClose = () => {
+    setVisible(false);
+  };
+  //搜索按钮
+  const onSearch = (val) => {
+    SetKeyword(val);
+    refetch();
+  }
+  //添加
   const [addXiangmu] = useMutation(ADD_XIANGMU, {
     update(cache, { data: { createXiangmu } }) {
       cache.modify({
@@ -150,11 +186,12 @@ function AllTable() {
       });
     }
   });
-  const [updateXiangmu] = useMutation(UPDATE_XIANGMU);
   const showModal = () => {
     setRowdata({id:0,xmbh:'',xmmc:'',xmfzr:'',xmlx:'',gclzl:'',gcllr:'',gclsm:'',gclcl:'',xmdd:'',xmbz:'',xmhth:''});
     setIsModalVisible(true);
   };
+  //编辑
+  const [updateXiangmu] = useMutation(UPDATE_XIANGMU);
   const editModal = (value) => {
     setRowdata(value);
     setIsModalVisible(true);
@@ -174,66 +211,89 @@ function AllTable() {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-  const { loading: queryLoading, error: queryError, data } = useQuery(GET_XIANGMUS);
-  const columns = [
-    {
-      title: '项目编号',
-      dataIndex: 'xmbh',
-      width: '14%',
-    },
-    {
-      title: '项目名称',
-      dataIndex: 'xmmc',
-    },
-    {
-      title: '项目负责人',
-      dataIndex: 'xmfzr',
-    },
-    {
-      title: '项目类型',
-      dataIndex: 'xmlx',
-    },
-    {
-      title: '整理工程量',
-      dataIndex: 'gclzl',
-    },
-    {
-      title: '录入工程量',
-      dataIndex: 'gcllr',
-    },
-    {
-      title: '扫描工程量',
-      dataIndex: 'gclsm',
-    },
-    {
-      title: '处理工程量',
-      dataIndex: 'gclcl',
-    },
-    {
-      title: '项目地点',
-      dataIndex: 'xmdd',
-    },
-    {
+
+    const columns = [
+      {
+        title: '项目编号',
+        dataIndex: 'xmbh',
+        width: '7%',
+      },
+      {
+        title: '项目名称',
+        dataIndex: 'xmmc',
+        width: '7%',
+      },
+      {
+        title: '项目负责人',
+        dataIndex: 'xmfzr',
+        width: '7%',
+      },
+      {
+        title: '项目类型',
+        dataIndex: 'xmlx',
+        width: '7%',
+      },
+      {
+        title: '整理工程量',
+        dataIndex: 'gclzl',
+        width: '7%',
+      },
+      {
+        title: '录入工程量',
+        dataIndex: 'gcllr',
+        width: '7%',
+      },
+      {
+        title: '扫描工程量',
+        dataIndex: 'gclsm',
+        width: '7%',
+      },
+      {
+        title: '处理工程量',
+        dataIndex: 'gclcl',
+        width: '7%',
+      },
+      {
+        title: '项目地点',
+        dataIndex: 'xmdd',
+        width: '7%',
+      },
+      {
+          title: '项目合同号',
+          dataIndex: 'xmhth',
+          width: '7%',
+      },
+      {
         title: '项目备注',
         dataIndex: 'xmbz',
-    },
-    {
-        title: '项目合同号',
-        dataIndex: 'xmhth',
-    },
-    {
-      title: '操作',
-      dataIndex: 'operation',
-      render: (_text, record) =>
-        data.xiangmus.length >= 1 ? (
-          <div>
-            <Button type="link" onClick={()=>{editModal(record)}}>调拨</Button>
-          </div>
-        ) : null,
-    },
-  ];
-  if (queryLoading) return <p>Loading...</p>;
-  if (queryError) return <p>Error :(</p>;
+        width: '7%',
+      },
+      {
+        title: '配备',
+        width: '3%',
+        dataIndex: 'peibei',
+        render: (_text, record) =>
+          data.xiangmus.length >= 1 ? (
+            <div>
+              <Button type="link" onClick={()=>{showDrawer(record)}}>查看</Button>
+            </div>
+          ) : null,
+      },
+      {
+        title: '操作',
+        width: '3%',
+        dataIndex: 'operation',
+        render: (_text, record) =>
+          data.xiangmus.length >= 1 ? (
+            <div>
+              <Button type="link" onClick={()=>{editModal(record)}}>更新</Button>
+            </div>
+          ) : null,
+      },
+    ];
+  if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
   return (
     <div>
       <Button
@@ -241,11 +301,16 @@ function AllTable() {
         style={{
           marginBottom: 16,
         }}
-        onClick={showModal}
-      >
+        onClick={showModal}>
         新增
       </Button>
-      <Modal title="新增项目" visible={isModalVisible} onOk={handleOk}
+      <Search
+        placeholder="请输入项目名称"
+        allowClear
+        onSearch={onSearch}
+        style={{ width: 270, margin: '0 10px', float:'right' }}
+      />
+      <Modal title="项目情况" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>
       </Modal>
@@ -254,6 +319,16 @@ function AllTable() {
         columns={columns}
         rowKey={row=>row.id}
       />
+      <Drawer
+        title="配备"
+        placement="right"
+        closable={false}
+        onClose={onClose}
+        visible={visible}
+        width={340}
+      >
+   
+      </Drawer>
     </div>
   );
 }

@@ -34,6 +34,8 @@ const AddForm = React.forwardRef((props, ref) => (
         rzsj:props.row.rzsj,rgzl:props.row.rgzl,ygzl:props.row.ygzl,ljgzl:props.row.ljgzl,ygbz:props.row.ygbz,sfzh:props.row.sfzh }}
       preserve={false}
       ref = {ref}
+      labelCol={{ span: 7 }}
+      wrapperCol={{ span: 14 }}
     >
       <Form.Item
         label="员工姓名"
@@ -215,7 +217,7 @@ function AllTable() {
       render: (_text, record) =>
         data.yuangongs.length >= 1 ? (
           <div>
-            <Button type="link" onClick={()=>{editModal(record)}}>调拨</Button>
+            <Button type="link" onClick={()=>{editModal(record)}}>分配</Button>
           </div>
         ) : null,
     },
@@ -233,7 +235,7 @@ function AllTable() {
       >
         新增
       </Button>
-      <Modal title="新增员工" visible={isModalVisible} onOk={handleOk}
+      <Modal title="员工信息" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>
       </Modal>

@@ -8,7 +8,7 @@ const GET_SHEBEIS = gql`
       id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
     }
   }
-`
+`;
 const ADD_SHEBEI = gql`
   mutation CreateShebei($zcbh:String!,$szbm:String!,$szxm:String!,$sblx:String!,
     $sbpp:String!,$sbxh:String!,$xlh:String!,$smcs:String!,$sbbz:String!){
@@ -27,6 +27,13 @@ const UPDATE_SHEBEI = gql`
       }
   }
 `;
+// const DELETE_SHEBEI = gql`
+//   mutation DeleteShebei($id: Int!){
+//     deleteShebei(id:$id){
+//       id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh
+//     }
+//   }
+// `
 const AddForm = React.forwardRef((props, ref) => (
     <Form
       name="basic"
@@ -35,6 +42,8 @@ const AddForm = React.forwardRef((props, ref) => (
         xlh: props.row.xlh, smcs: props.row.smcs, sbbz: props.row.sbbz }}
       preserve={false}
       ref = {ref}
+      labelCol={{ span: 7 }}
+      wrapperCol={{ span: 14 }}
     >
       <Form.Item
         label="资产编号"
@@ -136,6 +145,7 @@ function AllTable() {
     }
   });
   const [updateShebei] = useMutation(UPDATE_SHEBEI);
+  // const [deleteShebei] = useMutation(DELETE_SHEBEI);
   const showModal = () => {
     setRowdata({id:0,zcbh:'',szbm:'',szxm:'',sblx:'',sbpp:'',sbxh:'',xlh:'',smcs:'',sbbz:''});
     setIsModalVisible(true);
@@ -144,6 +154,9 @@ function AllTable() {
     setRowdata(value);
     setIsModalVisible(true);
   }
+  // const delShebei = (val) => {
+  //   deleteShebei({variables: {id:val}});
+  // }
   const handleOk = () => {
     var val = ref.current.getFieldValue();
     if (rowdata.id === 0){
@@ -223,7 +236,7 @@ function AllTable() {
       >
         新增
       </Button>
-      <Modal title="新增设备" visible={isModalVisible} onOk={handleOk}
+      <Modal title="设备详情" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>
       </Modal>

@@ -57,14 +57,16 @@ pub struct YgQuery;
 
 #[Object]
 impl YgQuery {
-    async fn yuangongs(&self, ctx: &Context<'_>) -> Result<Vec<Yuangong>> {
+    async fn yuangongs(&self, ctx: &Context<'_>, ygxm: String) -> Result<Vec<Yuangong>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
+        let cc = format!("%{}%", ygxm);
         let recs = sqlx::query!(
             r#"
                 SELECT id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
-                    FROM yuangong
+                    FROM yuangong WHERE ygxm Like $1
                 ORDER BY id DESC
-            "#
+            "#,
+            cc
         )
         .fetch_all(pool)
         .await?;
@@ -89,32 +91,35 @@ impl YgQuery {
     async fn yuangong(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "sfzh of yuangong")] id: i32,
-    ) -> Result<Yuangong> {
+        id: i32,
+    ) -> Result<Vec<Yuangong>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
-        let rec = sqlx::query!(
+        let yuangongs = sqlx::query!(
             r#"
                 SELECT * FROM yuangong
-                WHERE id = (?1)
+                WHERE szxm = (?1)
             "#,
             id
         )
-        .fetch_one(pool)
+        .fetch_all(pool)
         .await?;
-        let book = Yuangong{
-            id: rec.id,
-            ygxm: rec.ygxm,
-            ssbm: rec.ssbm,
-            szxm: rec.szxm,
-            ygjn: rec.ygjn,
-            rzsj: rec.rzsj,
-            rgzl: rec.rgzl,
-            ygzl: rec.ygzl,
-            ljgzl: rec.ljgzl,
-            ygbz: rec.ygbz,
-            sfzh: rec.sfzh
+        let mut ys: Vec<Yuangong> = vec![];
+        for rec in yuangongs {
+            ys.push(Yuangong{
+                id: rec.id,
+                ygxm: rec.ygxm,
+                ssbm: rec.ssbm,
+                szxm: rec.szxm,
+                ygjn: rec.ygjn,
+                rzsj: rec.rzsj,
+                rgzl: rec.rgzl,
+                ygzl: rec.ygzl,
+                ljgzl: rec.ljgzl,
+                ygbz: rec.ygbz,
+                sfzh: rec.sfzh
+            });
         };
-        Ok(book)
+        Ok(ys)
     }
 
 }
@@ -175,28 +180,28 @@ impl YgMutation {
         }
     }
 
-    async fn delete_yuangong(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+    // async fn delete_yuangong(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
+    //     let pool = ctx.data_unchecked::<SqlitePool>();
      
-        let done = sqlx::query!(
-            r#"DELETE FROM yuangong
-                WHERE id = $1"#,
-            id
-        )
-        .execute(pool)
-        .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
+    //     let done = sqlx::query!(
+    //         r#"DELETE FROM yuangong
+    //             WHERE id = $1"#,
+    //         id
+    //     )
+    //     .execute(pool)
+    //     .await?;
+    //     // if books.contains(id) {
+    //     //     books.remove(id);
+    //     //     SimpleBroker::publish(BookChanged {
+    //     //         mutation_type: MutationType::Deleted,
+    //     //         id: id.into(),
+    //     //     });
+    //     //     Ok(true)
+    //     // } else {
+    //     //     Ok(false)
+    //     // }
+    //     Ok(done > 0)
+    // }
 
     async fn update_yuangong(&self, ctx: &Context<'_>, id: i32, sfzh: String, ygxm: String, ssbm: Option<String>, szxm: Option<String>,
     ygjn: Option<String>, rzsj: Option<String>, rgzl: Option<String>, ygzl: Option<String>, ljgzl: Option<String>, ygbz: Option<String>) -> Result<Yuangong> {
