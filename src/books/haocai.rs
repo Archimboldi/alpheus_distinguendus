@@ -46,14 +46,16 @@ pub struct HcQuery;
 
 #[Object]
 impl HcQuery {
-    async fn haocais(&self, ctx: &Context<'_>) -> Result<Vec<Haocai>> {
+    async fn haocais(&self, ctx: &Context<'_>, hcmc: String) -> Result<Vec<Haocai>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
+        let cc = format!("%{}%", hcmc);
         let recs = sqlx::query!(
             r#"
                 SELECT id,hcmc,gg,sl,dw,lj,hcbz,hcdj
-                    FROM haocai
+                    FROM haocai WHERE hcmc LIKE $1
                 ORDER BY id DESC
-            "#
+            "#,
+            cc
         )
         .fetch_all(pool)
         .await?;
@@ -72,33 +74,33 @@ impl HcQuery {
         }
         Ok(books)
     }
-    async fn haocai(
-        &self,
-        ctx: &Context<'_>,
-        #[graphql(desc = "id of haocai")] id: i32,
-    ) -> Result<Haocai> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
-        let rec = sqlx::query!(
-            r#"
-                SELECT * FROM haocai
-                WHERE id = (?1)
-            "#,
-            id
-        )
-        .fetch_one(pool)
-        .await?;
-        let book = Haocai{
-            id: rec.id,
-            hcmc: rec.hcmc,
-            gg: rec.gg,
-            sl: rec.sl,
-            dw: rec.dw,
-            lj: rec.lj,
-            hcbz: rec.hcbz,
-            hcdj: rec.hcdj
-        };
-        Ok(book)
-    }
+    // async fn haocai(
+    //     &self,
+    //     ctx: &Context<'_>,
+    //     #[graphql(desc = "id of haocai")] id: i32,
+    // ) -> Result<Haocai> {
+    //     let pool = ctx.data_unchecked::<SqlitePool>();
+    //     let rec = sqlx::query!(
+    //         r#"
+    //             SELECT * FROM haocai
+    //             WHERE id = (?1)
+    //         "#,
+    //         id
+    //     )
+    //     .fetch_one(pool)
+    //     .await?;
+    //     let book = Haocai{
+    //         id: rec.id,
+    //         hcmc: rec.hcmc,
+    //         gg: rec.gg,
+    //         sl: rec.sl,
+    //         dw: rec.dw,
+    //         lj: rec.lj,
+    //         hcbz: rec.hcbz,
+    //         hcdj: rec.hcdj
+    //     };
+    //     Ok(book)
+    // }
 
 }
 

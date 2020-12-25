@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import { Table, Button, Form, Modal, Input } from 'antd';
-import { gql, useQuery, useMutation } from '@apollo/client';
+import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
+const { Search } = Input;
 
-const GET_YUANGONGS = gql`
-  query{
-    yuangongs{
+const FIND_YUANGONG = gql`
+  query FindYuangong($ygxm:String!){
+    yuangongs(ygxm:$ygxm){
       id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
     }
   }
@@ -168,7 +169,15 @@ function AllTable() {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-  const { loading: queryLoading, error: queryError, data } = useQuery(GET_YUANGONGS);
+  //搜索按钮
+  const onSearch = (val) => {
+    SetKeyword(val);
+    refetch();
+  }
+  const [keyword, SetKeyword] = useState("");
+  const {loading, error, data, refetch, networkStatus} = useQuery(FIND_YUANGONG,{
+    variables:{"ygxm": keyword}
+  });
   const columns = [
     {
       title: '员工姓名',
@@ -222,8 +231,9 @@ function AllTable() {
         ) : null,
     },
   ];
-  if (queryLoading) return <p>Loading...</p>;
-  if (queryError) return <p>Error :(</p>;
+  if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
   return (
     <div>
       <Button
@@ -235,6 +245,12 @@ function AllTable() {
       >
         新增
       </Button>
+      <Search
+        placeholder="请输入员工姓名"
+        allowClear
+        onSearch={onSearch}
+        style={{ width: 270, margin: '0 10px', float:'right' }}
+      />
       <Modal title="员工信息" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>

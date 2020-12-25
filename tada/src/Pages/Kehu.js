@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import { Table, Button, Form, Modal, Input } from 'antd';
-import { gql, useQuery, useMutation } from '@apollo/client';
+import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
+const { Search } = Input;
 
-const GET_KEHUS = gql`
-  query{
-    kehus{
+const FIND_KEHU = gql`
+  query FindKehu($khxm:String!){
+    kehus(khxm:$khxm){
       id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
     }
   }
@@ -141,7 +142,15 @@ function AllTable() {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-  const { loading: queryLoading, error: queryError, data } = useQuery(GET_KEHUS);
+   //搜索按钮
+   const onSearch = (val) => {
+    SetKeyword(val);
+    refetch();
+  }
+  const [keyword, SetKeyword] = useState("");
+  const {loading, error, data, refetch, networkStatus} = useQuery(FIND_KEHU,{
+    variables:{"khxm": keyword}
+  });
   const columns = [
     {
       title: '客户编号',
@@ -183,8 +192,9 @@ function AllTable() {
         ) : null,
     },
   ];
-  if (queryLoading) return <p>Loading...</p>;
-  if (queryError) return <p>Error :(</p>;
+  if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
   return (
     <div>
       <Button
@@ -196,6 +206,12 @@ function AllTable() {
       >
         新增
       </Button>
+      <Search
+        placeholder="请输入客户姓名"
+        allowClear
+        onSearch={onSearch}
+        style={{ width: 270, margin: '0 10px', float:'right' }}
+      />
       <Modal title="客户信息" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>

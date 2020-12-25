@@ -14,6 +14,20 @@ pub struct Shebei {
     pub sbbz: Option<String>,
     pub xlh: Option<String>
 }
+#[derive(Clone)]
+pub struct Shebei_ {
+    pub id: i32,
+    pub zcbh: Option<String>,
+    pub szbm: Option<String>,
+    pub szxm: Option<String>,
+    pub xmmc: Option<String>,
+    pub sblx: Option<String>,
+    pub sbpp: Option<String>,
+    pub sbxh: Option<String>,
+    pub smcs: Option<String>,
+    pub sbbz: Option<String>,
+    pub xlh: Option<String>
+}
 
 #[Object]
 impl Shebei {
@@ -48,32 +62,67 @@ impl Shebei {
         self.sbbz.as_ref()
     }
 }
-
+#[Object]
+impl Shebei_ {
+    async fn id(&self) -> &i32 {
+        &self.id
+    }
+    async fn zcbh(&self) -> Option<&String> {
+        self.zcbh.as_ref()
+    }
+    async fn szbm(&self) -> Option<&String> {
+        self.szbm.as_ref()
+    }
+    async fn szxm(&self) -> Option<&String> {
+        self.szxm.as_ref()
+    }
+    async fn xmmc(&self) -> Option<&String> {
+        self.xmmc.as_ref()
+    }
+    async fn sblx(&self) -> Option<&String> {
+        self.sblx.as_ref()
+    }
+    async fn sbpp(&self) -> Option<&String> {
+        self.sbpp.as_ref()
+    }
+    async fn sbxh(&self) -> Option<&String> {
+        self.sbxh.as_ref()
+    }
+    async fn xlh(&self) -> Option<&String> {
+        self.xlh.as_ref()
+    }
+    async fn smcs(&self) -> Option<&String> {
+        self.smcs.as_ref()
+    }
+    async fn sbbz(&self) -> Option<&String> {
+        self.sbbz.as_ref()
+    }
+}
 
 pub struct SbQuery;
 
 #[Object]
 impl SbQuery {
-    async fn shebeis(&self, ctx: &Context<'_>,sbxh:String) -> Result<Vec<Shebei>> {
+    async fn shebeis(&self, ctx: &Context<'_>,sbxh:String) -> Result<Vec<Shebei_>> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let cc = format!("%{}%", sbxh);
         let recs = sqlx::query!(
             r#"
-                SELECT id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz
-                    FROM shebei WHERE sbxh like $1
-                ORDER BY id DESC
+            SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
+            FROM shebei left join xiangmu on xiangmu.id=shebei.szxm WHERE sbxh like $1;
             "#,
             cc
         )
         .fetch_all(pool)
         .await?;
-        let mut books: Vec<Shebei> = vec![];
+        let mut books: Vec<Shebei_> = vec![];
         for rec in recs {
-            books.push(Shebei{
+            books.push(Shebei_{
                 id: rec.id,
                 zcbh: rec.zcbh,
                 szbm: rec.szbm,
                 szxm: rec.szxm,
+                xmmc: rec.xmmc,
                 sblx: rec.sblx,
                 sbpp: rec.sbpp,
                 sbxh: rec.sbxh,
@@ -123,12 +172,12 @@ pub struct SbMutation;
 
 #[Object]
 impl SbMutation {
-    async fn create_shebei(&self, ctx: &Context<'_>, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>,sblx: Option<String>,
-     sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei> {
+    async fn create_shebei(&self, ctx: &Context<'_>, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>, xmmc:Option<String>,sblx: Option<String>,
+     sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei_> {
         let mut pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"
-            INSERT INTO shebei(zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz)
+            INSERT INTO shebei (zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz)
                 VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
             "#,
             zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz
@@ -138,16 +187,18 @@ impl SbMutation {
         if done == 1 {
             let rec = sqlx::query!(
                 r#"
-                    SELECT * FROM shebei ORDER BY id DESC
+                    SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
+                    FROM shebei left join xiangmu on xiangmu.id=shebei.szxm ORDER BY shebei.id DESC
                 "#
             )
             .fetch_one(pool)
             .await?;
-            let nsb = Shebei {
+            let nsb = Shebei_ {
                 id: rec.id,
                 zcbh: rec.zcbh,
                 szbm: rec.szbm,
                 szxm: rec.szxm,
+                xmmc: rec.xmmc,
                 sblx: rec.sblx,
                 sbpp: rec.sbpp,
                 sbxh: rec.sbxh,
@@ -157,11 +208,12 @@ impl SbMutation {
             };
             Ok(nsb)
         }else{
-            let osb = Shebei {
+            let osb = Shebei_ {
                 id: -1,
                 zcbh: zcbh,
                 szbm: szbm,
                 szxm: szxm,
+                xmmc: xmmc,
                 sblx: sblx,
                 sbpp: sbpp,
                 sbxh: sbxh,
@@ -208,8 +260,8 @@ impl SbMutation {
     //     Ok(book)
     // }
 
-    async fn update_shebei(&self, ctx: &Context<'_>, id: i32, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>,sblx: Option<String>,
-    sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei> {
+    async fn update_shebei(&self, ctx: &Context<'_>, id: i32, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>,xmmc:Option<String>,sblx: Option<String>,
+    sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei_> {
         let pool = ctx.data_unchecked::<SqlitePool>();
         let done = sqlx::query!(
             r#"UPDATE shebei
@@ -220,11 +272,12 @@ impl SbMutation {
         .execute(pool)
         .await?;
         if done > 0 {
-            let nsb = Shebei {
+            let nsb = Shebei_ {
                 id: id,
                 zcbh: zcbh,
                 szbm: szbm,
                 szxm: szxm,
+                xmmc: xmmc,
                 sblx: sblx,
                 sbpp: sbpp,
                 sbxh: sbxh,
@@ -235,18 +288,19 @@ impl SbMutation {
             Ok(nsb)
         }else{
             let rec = sqlx::query!(
-                r#"SELECT * FROM shebei
-                    WHERE id = $1
+                r#"SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc FROM shebei
+                    left join xiangmu on xiangmu.id=shebei.szxm WHERE shebei.id = $1
                 "#,
                 id
             )
             .fetch_one(pool)
             .await?;
-            let book = Shebei{
+            let book = Shebei_{
                 id: rec.id,
                 zcbh: rec.zcbh,
                 szbm: rec.szbm,
                 szxm: rec.szxm,
+                xmmc: rec.xmmc,
                 sblx: rec.sblx,
                 sbpp: rec.sbpp,
                 sbxh: rec.sbxh,

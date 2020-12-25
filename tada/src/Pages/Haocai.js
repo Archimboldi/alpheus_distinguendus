@@ -1,14 +1,15 @@
 import React, {useState} from 'react';
 import { Table, Button, Form, Modal, Input } from 'antd';
-import { gql, useQuery, useMutation } from '@apollo/client';
+import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
+const { Search } = Input;
 
-const GET_HAOCAIS = gql`
-  query{
-    haocais{
+const FIND_HAOCAI = gql`
+  query FindHaocai($hcmc:String!){
+    haocais(hcmc:$hcmc){
       id,hcmc,gg,sl,dw,lj,hcbz,hcdj
     }
   }
-`
+`;
 const ADD_HAOCAI = gql`
   mutation CreateHaocai($hcmc:String!,$gg:String!,$sl:String!,$dw:String!,$lj:String!,$hcbz:String!,$hcdj:String!){
     createHaocai(hcmc:$hcmc,gg:$gg,sl:$sl,dw:$dw,lj:$lj,hcbz:$hcbz,hcdj:$hcdj){
@@ -137,7 +138,15 @@ function AllTable() {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
-  const { loading: queryLoading, error: queryError, data } = useQuery(GET_HAOCAIS);
+  //搜索按钮
+  const onSearch = (val) => {
+    SetKeyword(val);
+    refetch();
+  }
+  const [keyword, SetKeyword] = useState("");
+  const {loading, error, data, refetch, networkStatus} = useQuery(FIND_HAOCAI,{
+    variables:{"hcmc": keyword}
+  });
   const columns = [
     {
       title: '耗材名称',
@@ -175,8 +184,9 @@ function AllTable() {
         ) : null,
     },
   ];
-  if (queryLoading) return <p>Loading...</p>;
-  if (queryError) return <p>Error :(</p>;
+  if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
   return (
     <div>
       <Button
@@ -188,6 +198,12 @@ function AllTable() {
       >
         新增
       </Button>
+      <Search
+        placeholder="请输入耗材名称"
+        allowClear
+        onSearch={onSearch}
+        style={{ width: 270, margin: '0 10px', float:'right' }}
+      />
       <Modal title="耗材详情" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref}/>

@@ -6,20 +6,20 @@ const { Search } = Input;
 const FIND_XIANGMU = gql`
   query FindXiang($xmmc:String!){
     xiangmus(xmmc: $xmmc) {
-        id,xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
+      id,xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
     }
   }
 `;
 const PEIBEI = gql`
   query PeiBei($id:Int!) {
     shebei(id:$id) {
-      id,sbxh
+      id,zcbh,sbxh
     },
     yuangong(id:$id) {
-      id,ygxm
+      id,ygxm,ygjn
     },
     kehu(id:$id) {
-      id,khbh
+      id,khxm,khlx
     },
   }
 `;
@@ -151,7 +151,6 @@ function AllTable() {
   const showDrawer = (val) => {
     setPb(val);
     pbrefetch();
-    console.log(pbdata);
     setVisible(true);
   };
   const onClose = () => {
@@ -206,10 +205,10 @@ function AllTable() {
   const handleOk = () => {
     var val = ref.current.getFieldValue();
     if (rowdata.id === 0){
-      addXiangmu({variables: {xmbh:val.xmbh,xmmc:val.xmmc,xmfzr:val.xmfzr,xmlx:val.xmlx,gclzl:val.gclcl,
+      addXiangmu({variables: {xmbh:val.xmbh,xmmc:val.xmmc,xmfzr:val.xmfzr,xmlx:val.xmlx,gclzl:val.gclzl,
         gcllr:val.gcllr,gclsm:val.gclsm,gclcl:val.gclcl,xmdd:val.xmdd,xmbz:val.xmdd,xmhth:val.xmhth}})
     }else {
-      updateXiangmu({variables: {id:rowdata.id,xmbh:val.xmbh,xmmc:val.xmmc,xmfzr:val.xmfzr,xmlx:val.xmlx,gclzl:val.gclcl,
+      updateXiangmu({variables: {id:rowdata.id,xmbh:val.xmbh,xmmc:val.xmmc,xmfzr:val.xmfzr,xmlx:val.xmlx,gclzl:val.gclzl,
         gcllr:val.gcllr,gclsm:val.gclsm,gclcl:val.gclcl,xmdd:val.xmdd,xmbz:val.xmdd,xmhth:val.xmhth}})
     }
     setIsModalVisible(false);
@@ -336,15 +335,17 @@ function AllTable() {
       >
         <h3>设备</h3>
         {pbdata.shebei.map(s => (
-          <p key={s.id}>{s.sbxh}</p>
+          <p key={s.id}>{s.zcbh}&nbsp;&nbsp;&nbsp;{s.sbxh}</p>
         ))}
+        <br />
         <h3>员工</h3>
         {pbdata.yuangong.map(y => (
-          <p key={y.id}>{y.ygxm}</p>
+          <p key={y.id}>{y.ygxm}&nbsp;&nbsp;&nbsp;{y.ygjn}</p>
         ))}
+        <br />
         <h3>客户</h3>
         {pbdata.kehu.map(k => (
-          <p key={k.id}>{k.khxm}</p>
+          <p key={k.id}>{k.khxm}&nbsp;&nbsp;&nbsp;{k.khlx}</p>
         ))}
       </Drawer>
     </div>
