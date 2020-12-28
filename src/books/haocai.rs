@@ -1,5 +1,5 @@
 use async_graphql::{Context, Object, Result};
-use sqlx::SqlitePool;
+use sqlx::postgres::PgPool;
 
 #[derive(Clone)]
 pub struct Haocai {
@@ -47,7 +47,7 @@ pub struct HcQuery;
 #[Object]
 impl HcQuery {
     async fn haocais(&self, ctx: &Context<'_>, hcmc: String) -> Result<Vec<Haocai>> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let cc = format!("%{}%", hcmc);
         let recs = sqlx::query!(
             r#"
@@ -79,7 +79,7 @@ impl HcQuery {
     //     ctx: &Context<'_>,
     //     #[graphql(desc = "id of haocai")] id: i32,
     // ) -> Result<Haocai> {
-    //     let pool = ctx.data_unchecked::<SqlitePool>();
+    //     let pool = ctx.data_unchecked::<PgPool>();
     //     let rec = sqlx::query!(
     //         r#"
     //             SELECT * FROM haocai
@@ -110,11 +110,11 @@ pub struct HcMutation;
 impl HcMutation {
     async fn create_haocai(&self, ctx: &Context<'_>, hcmc: Option<String>, gg: Option<String>, sl: Option<String>, dw: Option<String>,
      lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>) -> Result<Haocai> {
-        let mut pool = ctx.data_unchecked::<SqlitePool>();
+        let mut pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO haocai(hcmc,gg,sl,dw,lj,hcbz,hcdj)
-                VALUES (?1,?2,?3,?4,?5,?6,?7)
+                VALUES ($1,$2,$3,$4,$5,$6,$7)
             "#,
             hcmc,gg,sl,dw,lj,hcbz,hcdj
         )
@@ -155,7 +155,7 @@ impl HcMutation {
     }
 
     // async fn delete_haocai(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-    //     let pool = ctx.data_unchecked::<SqlitePool>();
+    //     let pool = ctx.data_unchecked::<PgPool>();
      
     //     let done = sqlx::query!(
     //         r#"DELETE FROM haocai
@@ -177,13 +177,13 @@ impl HcMutation {
     //     Ok(done > 0)
     // }
 
-    async fn change_haocai(&self, ctx: &Context<'_>, id:i32, hcmc: Option<String>, gg: Option<String>, sl: Option<String>, dw: Option<String>,
+    async fn update_haocai(&self, ctx: &Context<'_>, id:i32, hcmc: Option<String>, gg: Option<String>, sl: Option<String>, dw: Option<String>,
     lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>) -> Result<Haocai> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"UPDATE haocai
                 SET hcmc = $1, gg = $2, sl = $3, dw = $4, lj = $5, hcbz = $6, hcdj = $7
-                WHERE id = $10"#,
+                WHERE id = $8"#,
             hcmc,gg,sl,dw,lj,hcbz,hcdj,id
         )
         .execute(pool)

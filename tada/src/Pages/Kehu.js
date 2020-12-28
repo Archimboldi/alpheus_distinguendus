@@ -1,33 +1,41 @@
 import React, {useState} from 'react';
-import { Table, Button, Form, Modal, Input } from 'antd';
+import { Table, Button, Form, Modal, Input, Select } from 'antd';
 import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
 const { Search } = Input;
+const { Option } = Select;
 
 const FIND_KEHU = gql`
   query FindKehu($khxm:String!){
     kehus(khxm:$khxm){
-      id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
+      id,khbh,khxm,ssxm,xmmc,khxb,khgx,khbz,khlx
     }
   }
 `
 const ADD_KEHU = gql`
-  mutation CreateKehu($khbh:String!,$khxm:String!,$ssxm:String!,$khxb:String!,$khgx:String!,$khbz:String!,$khlx:String!){
-    createKehu(khbh:$khbh,khxm:$khxm,ssxm:$ssxm,khxb:$khxb,khgx:$khgx,khbz:$khbz,khlx:$khlx){
-        id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
+  mutation CreateKehu($khbh:String!,$khxm:String!,$ssxm:Int!,$xmmc:String!,$khxb:String!,$khgx:String!,$khbz:String!,$khlx:String!){
+    createKehu(khbh:$khbh,khxm:$khxm,ssxm:$ssxm,xmmc:$xmmc,khxb:$khxb,khgx:$khgx,khbz:$khbz,khlx:$khlx){
+        id,khbh,khxm,ssxm,xmmc,khxb,khgx,khbz,khlx
       }
   }
 `;
 const UPDATE_KEHU = gql`
-  mutation UpdateKehu($id:Int!,$khbh:String!,$khxm:String!,$ssxm:String!,$khxb:String!,$khgx:String!,$khbz:String!,$khlx:String!){
-    updateKehu(id:$id,khbh:$khbh,khxm:$khxm,ssxm:$ssxm,khxb:$khxb,khgx:$khgx,khbz:$khbz,khlx:$khlx){
-        id,khbh,khxm,ssxm,khxb,khgx,khbz,khlx
+  mutation UpdateKehu($id:Int!,$khbh:String!,$khxm:String!,$ssxm:Int!,$xmmc:String!,$khxb:String!,$khgx:String!,$khbz:String!,$khlx:String!){
+    updateKehu(id:$id,khbh:$khbh,khxm:$khxm,ssxm:$ssxm,xmmc:$xmmc,khxb:$khxb,khgx:$khgx,khbz:$khbz,khlx:$khlx){
+        id,khbh,khxm,ssxm,xmmc,khxb,khgx,khbz,khlx
       }
+  }
+`;
+const FIND_XIANGMU = gql`
+  query FindXiang($xmmc:String!){
+    xiangmus(xmmc: $xmmc) {
+        id,xmmc
+    }
   }
 `;
 const AddForm = React.forwardRef((props, ref) => (
     <Form
       name="basic"
-      initialValues={{ khbh: props.row.khbh, khxm: props.row.khxm, ssxm: props.row.ssxm,
+      initialValues={{ khbh: props.row.khbh, khxm: props.row.khxm, ssxm: props.row.ssxm,xmmc:props.row.xmmc,
         khxb: props.row.khxb, khgx: props.row.khgx, khbz: props.row.khbz, khlx: props.row.khlx }}
       preserve={false}
       ref = {ref}
@@ -50,10 +58,16 @@ const AddForm = React.forwardRef((props, ref) => (
       </Form.Item>
       <Form.Item
         label="所属项目"
-        name="ssxm"
+        name="xmmc"
         rules={[{ required: true }]}
       >
-        <Input />
+        <Select onChange={(_,value)=>{ref.current.setFieldsValue({
+          ssxm: value.key
+        })}}>
+          {props.xmdata.xiangmus.map(xm => (
+            <Option key={xm.id} value={xm.xmmc}>{xm.xmmc}</Option>
+          ))}
+        </Select>
       </Form.Item>
       <Form.Item
         label="客户性别"
@@ -91,6 +105,9 @@ function AllTable() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
+  const { data:xmdata, refetch:xmfetch } = useQuery(FIND_XIANGMU,{
+    variables:{"xmmc": ""}
+  });
   const [addKehu] = useMutation(ADD_KEHU, {
     update(cache, { data: { createKehu } }) {
       cache.modify({
@@ -104,6 +121,7 @@ function AllTable() {
                   khbh
                   khxm
                   ssxm
+                  xmmc
                   khxb
                   khgx
                   khbz
@@ -119,20 +137,22 @@ function AllTable() {
   });
   const [updateKehu] = useMutation(UPDATE_KEHU);
   const showModal = () => {
-    setRowdata({id:0,khbh:'',khxm:'',ssxm:'',khxb:'',khgx:'',khbz:'',khlx:''});
+    xmfetch();
+    setRowdata({id:0,khbh:'',khxm:'',ssxm:'',khxb:'',khgx:'',khbz:'',khlx:'',xmmc:''});
     setIsModalVisible(true);
   };
   const editModal = (value) => {
+    xmfetch();
     setRowdata(value);
     setIsModalVisible(true);
   }
   const handleOk = () => {
     var val = ref.current.getFieldValue();
     if (rowdata.id === 0){
-      addKehu({variables: {khbh: val.khbh, khxm: val.khxm, ssxm: val.ssxm,
+      addKehu({variables: {khbh: val.khbh, khxm: val.khxm, ssxm: parseInt(val.ssxm), xmmc: val.xmmc,
         khxb: val.khxb, khgx: val.khgx, khbz: val.khbz, khlx: val.khlx}})
     }else {
-      updateKehu({variables: {id:rowdata.id,khbh: val.khbh, khxm: val.khxm, ssxm: val.ssxm,
+      updateKehu({variables: {id:rowdata.id,khbh: val.khbh, khxm: val.khxm, ssxm: parseInt(val.ssxm), xmmc: val.xmmc,
         khxb: val.khxb, khgx: val.khgx, khbz: val.khbz, khlx: val.khlx}})
     }
 
@@ -163,7 +183,7 @@ function AllTable() {
     },
     {
       title: '所属项目',
-      dataIndex: 'ssxm',
+      dataIndex: 'xmmc',
     },
     {
       title: '客户性别',
@@ -214,7 +234,7 @@ function AllTable() {
       />
       <Modal title="客户信息" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
-        <AddForm row={rowdata} ref={ref}/>
+        <AddForm row={rowdata} ref={ref} xmdata={xmdata}/>
       </Modal>
       <Table
         dataSource={data.kehus}

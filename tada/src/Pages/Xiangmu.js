@@ -206,10 +206,10 @@ function AllTable() {
     var val = ref.current.getFieldValue();
     if (rowdata.id === 0){
       addXiangmu({variables: {xmbh:val.xmbh,xmmc:val.xmmc,xmfzr:val.xmfzr,xmlx:val.xmlx,gclzl:val.gclzl,
-        gcllr:val.gcllr,gclsm:val.gclsm,gclcl:val.gclcl,xmdd:val.xmdd,xmbz:val.xmdd,xmhth:val.xmhth}})
+        gcllr:val.gcllr,gclsm:val.gclsm,gclcl:val.gclcl,xmdd:val.xmdd,xmbz:val.xmbz,xmhth:val.xmhth}})
     }else {
       updateXiangmu({variables: {id:rowdata.id,xmbh:val.xmbh,xmmc:val.xmmc,xmfzr:val.xmfzr,xmlx:val.xmlx,gclzl:val.gclzl,
-        gcllr:val.gcllr,gclsm:val.gclsm,gclcl:val.gclcl,xmdd:val.xmdd,xmbz:val.xmdd,xmhth:val.xmhth}})
+        gcllr:val.gcllr,gclsm:val.gclsm,gclcl:val.gclcl,xmdd:val.xmdd,xmbz:val.xmbz,xmhth:val.xmhth}})
     }
     setIsModalVisible(false);
   };

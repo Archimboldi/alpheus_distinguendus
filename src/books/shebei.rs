@@ -1,12 +1,12 @@
 use async_graphql::*;
-use sqlx::SqlitePool;
+use sqlx::postgres::PgPool;
 
 #[derive(Clone)]
 pub struct Shebei {
     pub id: i32,
     pub zcbh: Option<String>,
     pub szbm: Option<String>,
-    pub szxm: Option<String>,
+    pub szxm: Option<i32>,
     pub sblx: Option<String>,
     pub sbpp: Option<String>,
     pub sbxh: Option<String>,
@@ -19,7 +19,7 @@ pub struct Shebei_ {
     pub id: i32,
     pub zcbh: Option<String>,
     pub szbm: Option<String>,
-    pub szxm: Option<String>,
+    pub szxm: Option<i32>,
     pub xmmc: Option<String>,
     pub sblx: Option<String>,
     pub sbpp: Option<String>,
@@ -40,7 +40,7 @@ impl Shebei {
     async fn szbm(&self) -> Option<&String> {
         self.szbm.as_ref()
     }
-    async fn szxm(&self) -> Option<&String> {
+    async fn szxm(&self) -> Option<&i32> {
         self.szxm.as_ref()
     }
     async fn sblx(&self) -> Option<&String> {
@@ -73,7 +73,7 @@ impl Shebei_ {
     async fn szbm(&self) -> Option<&String> {
         self.szbm.as_ref()
     }
-    async fn szxm(&self) -> Option<&String> {
+    async fn szxm(&self) -> Option<&i32> {
         self.szxm.as_ref()
     }
     async fn xmmc(&self) -> Option<&String> {
@@ -104,7 +104,7 @@ pub struct SbQuery;
 #[Object]
 impl SbQuery {
     async fn shebeis(&self, ctx: &Context<'_>,sbxh:String) -> Result<Vec<Shebei_>> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let cc = format!("%{}%", sbxh);
         let recs = sqlx::query!(
             r#"
@@ -138,11 +138,11 @@ impl SbQuery {
         ctx: &Context<'_>,
         id: i32,
     ) -> Result<Vec<Shebei>> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let shebeis = sqlx::query!(
             r#"
                 SELECT * FROM shebei
-                WHERE szxm = (?1)
+                WHERE szxm = $1
             "#,
             id
         )
@@ -172,13 +172,13 @@ pub struct SbMutation;
 
 #[Object]
 impl SbMutation {
-    async fn create_shebei(&self, ctx: &Context<'_>, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>, xmmc:Option<String>,sblx: Option<String>,
+    async fn create_shebei(&self, ctx: &Context<'_>, zcbh: Option<String>, szbm: Option<String>, szxm: Option<i32>, xmmc:Option<String>,sblx: Option<String>,
      sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei_> {
-        let mut pool = ctx.data_unchecked::<SqlitePool>();
+        let mut pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO shebei (zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz)
-                VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
             "#,
             zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz
         )
@@ -227,7 +227,7 @@ impl SbMutation {
     }
 
     // async fn delete_shebei(&self, ctx: &Context<'_>, id: i32) -> Result<Shebei> {
-    //     let pool = ctx.data_unchecked::<SqlitePool>();
+    //     let pool = ctx.data_unchecked::<PgPool>();
         
     //     let rec = sqlx::query!(
     //         r#"SELECT * FROM shebei
@@ -260,9 +260,9 @@ impl SbMutation {
     //     Ok(book)
     // }
 
-    async fn update_shebei(&self, ctx: &Context<'_>, id: i32, zcbh: Option<String>, szbm: Option<String>, szxm: Option<String>,xmmc:Option<String>,sblx: Option<String>,
+    async fn update_shebei(&self, ctx: &Context<'_>, id: i32, zcbh: Option<String>, szbm: Option<String>, szxm: Option<i32>,xmmc:Option<String>,sblx: Option<String>,
     sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei_> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"UPDATE shebei
                 SET zcbh = $1, szbm = $2, szxm = $3, sblx = $4, sbpp = $5, sbxh = $6, xlh = $7, smcs = $8, sbbz = $9

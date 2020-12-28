@@ -1,6 +1,6 @@
 use async_graphql::{Context, Object, Result};
 
-use sqlx::SqlitePool;
+use sqlx::postgres::PgPool;
 
 #[derive(Clone)]
 pub struct User {
@@ -30,14 +30,15 @@ pub struct UQuery;
 
 #[Object]
 impl UQuery {
-    async fn users(&self, ctx: &Context<'_>) -> Result<Vec<User>> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+    async fn users(&self, ctx: &Context<'_>, usrn:String) -> Result<Vec<User>> {
+        let pool = ctx.data_unchecked::<PgPool>();
+        let cc = format!("%{}%", usrn);
         let recs = sqlx::query!(
             r#"
                 SELECT id,usrn,upsd,power
-                    FROM user
-                ORDER BY id DESC
-            "#
+                    FROM users WHERE usrn like $1 ORDER BY id DESC
+            "#,
+            cc
         )
         .fetch_all(pool)
         .await?;
@@ -52,30 +53,6 @@ impl UQuery {
         }
         Ok(books)
     }
-    async fn user(
-        &self,
-        ctx: &Context<'_>,
-        #[graphql(desc = "uid of user")] id: String,
-    ) -> Result<User> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
-        let rec = sqlx::query!(
-            r#"
-                SELECT * FROM user
-                WHERE id = (?1)
-            "#,
-            id
-        )
-        .fetch_one(pool)
-        .await?;
-        let book = User{
-            id: rec.id,
-            usrn: rec.usrn,
-            upsd: rec.upsd,
-            power: rec.power
-        };
-        Ok(book)
-    }
-
 }
 
 pub struct UMutation;
@@ -83,68 +60,79 @@ pub struct UMutation;
 #[Object]
 impl UMutation {
     async fn create_user(&self, ctx: &Context<'_>, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
-     -> Result<bool> {
-        let mut pool = ctx.data_unchecked::<SqlitePool>();
+     -> Result<User> {
+        let mut pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
-            INSERT INTO user(usrn,upsd,power)
-                VALUES (?1,?2,?3)
+            INSERT INTO users(usrn,upsd,power)
+                VALUES ($1,$2,$3)
             "#,
             usrn,upsd,power
         )
         .execute(&mut pool)
         .await?;
-        // SimpleBroker::publish(BookChanged {
-        //     mutation_type: MutationType::Created,
-        //     id: id.clone(),
-        // });
-        Ok(done > 0)
+        if done == 1 {
+            let rec = sqlx::query!(
+                r#"
+                    SELECT * FROM users ORDER BY id DESC
+                "#
+            )
+            .fetch_one(pool)
+            .await?;
+            let nur = User {
+                id: rec.id,
+                usrn: rec.usrn,
+                upsd: rec.upsd,
+                power: rec.power
+            };
+            Ok(nur)
+        }else{
+            let our = User {
+                id: -1,
+                usrn: usrn,
+                upsd: upsd,
+                power: power
+            };
+            Ok(our)
+        }
     }
 
-    async fn delete_user(&self, ctx: &Context<'_>, id: String) -> Result<bool> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
-     
+    async fn update_user(&self, ctx: &Context<'_>, id: i32, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
+     -> Result<User> {
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
-            r#"DELETE FROM user
-                WHERE id = $1"#,
-            id
-        )
-        .execute(pool)
-        .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
-    }
-
-    async fn change_user(&self, ctx: &Context<'_>, id: i32, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
-     -> Result<bool> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
-        let done = sqlx::query!(
-            r#"UPDATE user
+            r#"UPDATE users
                 SET usrn = $1, upsd = $2, power = $3
                 WHERE id = $4"#,
             usrn,upsd,power,id
         )
         .execute(pool)
         .await?;
-        // if books.contains(id) {
-        //     books.remove(id);
-        //     SimpleBroker::publish(BookChanged {
-        //         mutation_type: MutationType::Deleted,
-        //         id: id.into(),
-        //     });
-        //     Ok(true)
-        // } else {
-        //     Ok(false)
-        // }
-        Ok(done > 0)
+        if done == 1 {
+            let nur = User {
+                id: id,
+                usrn: usrn,
+                upsd: upsd,
+                power: power
+            };
+            Ok(nur)
+        }else{
+            let rec = sqlx::query!(
+                r#"SELECT * FROM users 
+                    WHERE id = $1
+                "#,
+                id
+            )
+            .fetch_one(pool)
+            .await?;
+            let our = User {
+                id: rec.id,
+                usrn: rec.usrn,
+                upsd: rec.upsd,
+                power: rec.power
+            };
+            Ok(our)
+        }
+     
     }
 }

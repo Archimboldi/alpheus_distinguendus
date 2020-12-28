@@ -15,7 +15,7 @@ pub struct QueryRoot(pub xiangmu::XmQuery, pub shebei::SbQuery, pub kehu::KhQuer
 
 #[derive(MergedObject)]
 pub struct Mutation(pub xiangmu::XmMutation, pub shebei::SbMutation, pub kehu::KhMutation,
-    pub yuangong::YgMutation, pub haocai::HcMutation, pub rizhi::RzMutation, pub user::UMutation, pub file::FileMutation);
+    pub yuangong::YgMutation, pub haocai::HcMutation, pub user::UMutation, pub file::FileMutation);
 
 // #[derive(MergedSubscription)]
 // pub struct Subscription(xiangmu::XmSubscription, shebei::SbSubscription);

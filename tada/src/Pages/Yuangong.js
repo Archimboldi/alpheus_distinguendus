@@ -1,37 +1,45 @@
 import React, {useState} from 'react';
-import { Table, Button, Form, Modal, Input } from 'antd';
+import { Table, Button, Form, Modal, Input, Select } from 'antd';
 import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
 const { Search } = Input;
+const { Option } = Select;
 
 const FIND_YUANGONG = gql`
   query FindYuangong($ygxm:String!){
     yuangongs(ygxm:$ygxm){
-      id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
+      id,ygxm,ssbm,szxm,xmmc,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
     }
   }
 `;
 const ADD_YUANGONG = gql`
-  mutation CreateYuangong($ygxm:String!,$ssbm:String!,$szxm:String!,$ygjn:String!,$rzsj:String!,
+  mutation CreateYuangong($ygxm:String!,$ssbm:String!,$szxm:Int!,$xmmc:String!,$ygjn:String!,$rzsj:String!,
     $rgzl:String!,$ygzl:String!,$ljgzl:String!,$ygbz:String!,$sfzh:String!){
-    createYuangong(ygxm:$ygxm,ssbm:$ssbm,szxm:$szxm,ygjn:$ygjn,rzsj:$rzsj,rgzl:$rgzl,
+    createYuangong(ygxm:$ygxm,ssbm:$ssbm,szxm:$szxm,xmmc:$xmmc,ygjn:$ygjn,rzsj:$rzsj,rgzl:$rgzl,
       ygzl:$ygzl,ljgzl:$ljgzl,ygbz:$ygbz,sfzh:$sfzh){
-        id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
+        id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh,xmmc
       }
   }
 `;
 const UPDATE_YUANGONG = gql`
-  mutation UpdateYuangong($id:Int!,$ygxm:String!,$ssbm:String!,$szxm:String!,$ygjn:String!,$rzsj:String!,
+  mutation UpdateYuangong($id:Int!,$ygxm:String!,$ssbm:String!,$szxm:Int!,$xmmc:String!,$ygjn:String!,$rzsj:String!,
     $rgzl:String!,$ygzl:String!,$ljgzl:String!,$ygbz:String!,$sfzh:String!){
-    updateYuangong(id:$id,ygxm:$ygxm,ssbm:$ssbm,szxm:$szxm,ygjn:$ygjn,rzsj:$rzsj,rgzl:$rgzl,
+    updateYuangong(id:$id,ygxm:$ygxm,ssbm:$ssbm,szxm:$szxm,xmmc:$xmmc,ygjn:$ygjn,rzsj:$rzsj,rgzl:$rgzl,
       ygzl:$ygzl,ljgzl:$ljgzl,ygbz:$ygbz,sfzh:$sfzh){
-        id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
+        id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh,xmmc
       }
+  }
+`;
+const FIND_XIANGMU = gql`
+  query FindXiang($xmmc:String!){
+    xiangmus(xmmc: $xmmc) {
+        id,xmmc
+    }
   }
 `;
 const AddForm = React.forwardRef((props, ref) => (
     <Form
       name="basic"
-      initialValues={{ ygxm:props.row.ygxm,ssbm:props.row.ssbm,szxm:props.row.szxm,ygjn:props.row.ygjn,
+      initialValues={{ ygxm:props.row.ygxm,ssbm:props.row.ssbm,szxm:props.row.szxm,xmmc:props.row.xmmc,ygjn:props.row.ygjn,
         rzsj:props.row.rzsj,rgzl:props.row.rgzl,ygzl:props.row.ygzl,ljgzl:props.row.ljgzl,ygbz:props.row.ygbz,sfzh:props.row.sfzh }}
       preserve={false}
       ref = {ref}
@@ -54,10 +62,16 @@ const AddForm = React.forwardRef((props, ref) => (
       </Form.Item>
       <Form.Item
         label="所在项目"
-        name="szxm"
+        name="xmmc"
         rules={[{ required: true }]}
       >
-        <Input />
+        <Select onChange={(_,value)=>{ref.current.setFieldsValue({
+          szxm: value.key
+        })}}>
+          {props.xmdata.xiangmus.map(xm => (
+            <Option key={xm.id} value={xm.xmmc}>{xm.xmmc}</Option>
+          ))}
+        </Select>
       </Form.Item>
       <Form.Item
         label="员工技能"
@@ -115,6 +129,9 @@ function AllTable() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
+  const { data:xmdata, refetch:xmfetch } = useQuery(FIND_XIANGMU,{
+    variables:{"xmmc": ""}
+  });
   const [addYuangong] = useMutation(ADD_YUANGONG, {
     update(cache, { data: { createYuangong } }) {
       cache.modify({
@@ -128,6 +145,7 @@ function AllTable() {
                   ygxm
                   ssbm
                   szxm
+                  xmmc
                   ygjn
                   rzsj
                   rgzl
@@ -146,20 +164,22 @@ function AllTable() {
   });
   const [updateYuangong] = useMutation(UPDATE_YUANGONG);
   const showModal = () => {
-    setRowdata({id:0,ygxm:'',ssbm:'',szxm:'',ygjn:'',rzsj:'',rgzl:'',ygzl:'',ljgzl:'',ygbz:'',sfzh:''});
+    xmfetch();
+    setRowdata({id:0,ygxm:'',ssbm:'',szxm:0,ygjn:'',rzsj:'',rgzl:'',ygzl:'',ljgzl:'',ygbz:'',sfzh:'',xmmc:''});
     setIsModalVisible(true);
   };
   const editModal = (value) => {
+    xmfetch();
     setRowdata(value);
     setIsModalVisible(true);
   }
   const handleOk = () => {
     var val = ref.current.getFieldValue();
     if (rowdata.id === 0){
-      addYuangong({variables: {ygxm:val.ygxm,ssbm:val.ssbm,szxm:val.szxm,ygjn:val.ygjn,rzsj:val.rzsj,
+      addYuangong({variables: {ygxm:val.ygxm,ssbm:val.ssbm,szxm:parseInt(val.szxm),xmmc: val.xmmc,ygjn:val.ygjn,rzsj:val.rzsj,
         rgzl:val.rgzl,ygzl:val.ygzl,ljgzl:val.ljgzl,ygbz:val.ygbz,sfzh:val.sfzh}})
     }else {
-      updateYuangong({variables: {id:rowdata.id,ygxm:val.ygxm,ssbm:val.ssbm,szxm:val.szxm,ygjn:val.ygjn,rzsj:val.rzsj,
+      updateYuangong({variables: {id:rowdata.id,ygxm:val.ygxm,ssbm:val.ssbm,szxm:parseInt(val.szxm),xmmc: val.xmmc,ygjn:val.ygjn,rzsj:val.rzsj,
         rgzl:val.rgzl,ygzl:val.ygzl,ljgzl:val.ljgzl,ygbz:val.ygbz,sfzh:val.sfzh}})
     }
 
@@ -190,7 +210,7 @@ function AllTable() {
     },
     {
       title: '所在项目',
-      dataIndex: 'szxm',
+      dataIndex: 'xmmc',
     },
     {
       title: '员工技能',
@@ -253,7 +273,7 @@ function AllTable() {
       />
       <Modal title="员工信息" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
-        <AddForm row={rowdata} ref={ref}/>
+        <AddForm row={rowdata} ref={ref} xmdata={xmdata}/>
       </Modal>
       <Table
         dataSource={data.yuangongs}

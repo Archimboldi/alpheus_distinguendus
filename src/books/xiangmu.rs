@@ -1,5 +1,5 @@
 use async_graphql::{Context, Object, Result};
-use sqlx::SqlitePool;
+use sqlx::postgres::PgPool;
 
 
 #[derive(Clone)]
@@ -69,7 +69,7 @@ impl XmQuery {
         ctx: &Context<'_>,
         #[graphql(desc = "xmmc of xiangmu")] xmmc: String
     ) -> Result<Vec<Xiangmu>> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let cc = format!("%{}%", xmmc);
         let recs = sqlx::query!(
             r#"
@@ -109,11 +109,11 @@ impl XmMutation {
     async fn create_xiangmu(&self, ctx: &Context<'_>, xmbh: Option<String>, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
      gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>,
       xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>) -> Result<Xiangmu> {
-        let mut pool = ctx.data_unchecked::<SqlitePool>();
+        let mut pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO xiangmu(xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth)
-                VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
             "#,
             xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
         )
@@ -162,7 +162,7 @@ impl XmMutation {
     }
 
     // async fn delete_xiangmu(&self, ctx: &Context<'_>, id: i32) -> Result<bool> {
-    //     let pool = ctx.data_unchecked::<SqlitePool>();
+    //     let pool = ctx.data_unchecked::<PgPool>();
      
     //     let done = sqlx::query!(
     //         r#"DELETE FROM xiangmu
@@ -186,7 +186,7 @@ impl XmMutation {
 
     async fn update_xiangmu(&self, ctx: &Context<'_>, id: i32, xmbh: Option<String>, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
     gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>, xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>) -> Result<Xiangmu> {
-        let pool = ctx.data_unchecked::<SqlitePool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"UPDATE xiangmu
                 SET xmbh= $1,xmmc= $2,xmfzr= $3,xmlx= $4,gclzl= $5,gcllr= $6,gclsm= $7,gclcl= $8,xmdd= $9,xmbz= $10,xmhth= $11

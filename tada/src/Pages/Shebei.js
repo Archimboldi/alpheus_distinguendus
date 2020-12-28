@@ -12,7 +12,7 @@ const FIND_SHEBEI = gql`
   }
 `;
 const ADD_SHEBEI = gql`
-  mutation CreateShebei($zcbh:String!,$szbm:String!,$szxm:String!,$xmmc:String!,$sblx:String!,
+  mutation CreateShebei($zcbh:String!,$szbm:String!,$szxm:Int!,$xmmc:String!,$sblx:String!,
     $sbpp:String!,$sbxh:String!,$xlh:String!,$smcs:String!,$sbbz:String!){
     createShebei(zcbh:$zcbh,szbm:$szbm,szxm:$szxm,xmmc:$xmmc,sblx:$sblx,sbpp:$sbpp,
       sbxh:$sbxh,xlh:$xlh,smcs:$smcs,sbbz:$sbbz){
@@ -21,7 +21,7 @@ const ADD_SHEBEI = gql`
   }
 `;
 const UPDATE_SHEBEI = gql`
-  mutation UpdateShebei($id:Int!,$zcbh:String!,$szbm:String!,$szxm:String!,$xmmc:String!,$sblx:String!,
+  mutation UpdateShebei($id:Int!,$zcbh:String!,$szbm:String!,$szxm:Int!,$xmmc:String!,$sblx:String!,
     $sbpp:String!,$sbxh:String!,$xlh:String!,$smcs:String!,$sbbz:String!){
     updateShebei(id:$id,zcbh:$zcbh,szbm:$szbm,szxm:$szxm,xmmc:$xmmc,sblx:$sblx,sbpp:$sbpp,
       sbxh:$sbxh,xlh:$xlh,smcs:$smcs,sbbz:$sbbz){
@@ -32,7 +32,7 @@ const UPDATE_SHEBEI = gql`
 const FIND_XIANGMU = gql`
   query FindXiang($xmmc:String!){
     xiangmus(xmmc: $xmmc) {
-        id,xmmc
+      id,xmmc
     }
   }
 `;
@@ -160,7 +160,7 @@ function AllTable() {
   const [updateShebei] = useMutation(UPDATE_SHEBEI);
   const showModal = () => {
     xmfetch();
-    setRowdata({id:0,zcbh:'',szbm:'',szxm:'',xmmc:'',sblx:'',sbpp:'',sbxh:'',xlh:'',smcs:'',sbbz:''});
+    setRowdata({id:0,zcbh:'',szbm:'',szxm:0,xmmc:'',sblx:'',sbpp:'',sbxh:'',xlh:'',smcs:'',sbbz:''});
     setIsModalVisible(true);
   };
   const editModal = (value) => {
@@ -171,12 +171,11 @@ function AllTable() {
 
   const handleOk = () => {
     var val = ref.current.getFieldValue();
-    console.log(val);
     if (rowdata.id === 0){
-      addShebei({variables: {zcbh:val.zcbh,szbm:val.szbm,szxm:val.szxm,xmmc:val.xmmc,sblx:val.sblx,
+      addShebei({variables: {zcbh:val.zcbh,szbm:val.szbm,szxm:parseInt(val.szxm),xmmc:val.xmmc,sblx:val.sblx,
         sbpp:val.sbpp,sbxh:val.sbxh,xlh:val.xlh,smcs:val.smcs,sbbz:val.sbbz}})
     }else {
-      updateShebei({variables: {id:rowdata.id,zcbh:val.zcbh,szbm:val.szbm,szxm:val.szxm,xmmc:val.xmmc,sblx:val.sblx,
+      updateShebei({variables: {id:rowdata.id,zcbh:val.zcbh,szbm:val.szbm,szxm:parseInt(val.szxm),xmmc:val.xmmc,sblx:val.sblx,
         sbpp:val.sbpp,sbxh:val.sbxh,xlh:val.xlh,smcs:val.smcs,sbbz:val.sbbz}})
     }
     setIsModalVisible(false);
