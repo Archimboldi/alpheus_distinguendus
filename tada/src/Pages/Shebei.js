@@ -56,6 +56,13 @@ const AddForm = React.forwardRef((props, ref) => (
         <Input />
       </Form.Item>
       <Form.Item
+        label="序列号"
+        name="xlh"
+        rules={[{ required: true }]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
         label="所在项目"
         name="xmmc"
         rules={[{ required: true }]}
@@ -96,13 +103,7 @@ const AddForm = React.forwardRef((props, ref) => (
       >
         <Input />
       </Form.Item>
-      <Form.Item
-        label="序列号"
-        name="xlh"
-        rules={[{ required: true }]}
-      >
-        <Input />
-      </Form.Item>
+      
       <Form.Item
         label="扫描次数"
         name="smcs"
@@ -200,6 +201,10 @@ function AllTable() {
       width: '14%',
     },
     {
+      title: '序列号',
+      dataIndex: 'xlh',
+    },
+    {
       title: '所在项目',
       dataIndex: 'xmmc',
     },
@@ -226,10 +231,6 @@ function AllTable() {
     {
       title: '设备备注',
       dataIndex: 'sbbz',
-    },
-    {
-      title: '序列号',
-      dataIndex: 'xlh',
     },
     {
       title: '操作',

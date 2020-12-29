@@ -51,7 +51,6 @@ class App extends React.Component {
                   设备
                 </Link>
               </Menu.Item>
-              
               <Menu.Item key="4" icon={<TeamOutlined />}>
                 <Link to="/yuangong" style={{color:"#7a7a7a"}}>
                   员工
