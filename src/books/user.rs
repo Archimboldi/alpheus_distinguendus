@@ -53,12 +53,42 @@ impl UQuery {
         }
         Ok(books)
     }
+   
 }
 
 pub struct UMutation;
 
 #[Object]
 impl UMutation {
+    async fn user(&self, ctx:&Context<'_>, usrn: String, upsd: String) -> Result<User> {
+        let pool = ctx.data_unchecked::<PgPool>();
+        let rec = sqlx::query!(
+            r#"
+                SELECT id,usrn,upsd,power
+                    FROM users WHERE usrn = $1
+            "#,
+            usrn
+        )
+        .fetch_one(pool)
+        .await?;
+        if rec.upsd == Some(upsd.clone()) {
+            let done = User {
+                id: rec.id,
+                usrn: rec.usrn,
+                upsd: rec.upsd,
+                power: rec.power
+            };
+            Ok(done)
+        }else{
+            let no = User {
+                id: -1,
+                usrn: Some(usrn),
+                upsd: Some(upsd),
+                power: Some("".to_string())
+            };
+            Ok(no)
+        }
+    }
     async fn create_user(&self, ctx: &Context<'_>, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
      -> Result<User> {
         let mut pool = ctx.data_unchecked::<PgPool>();

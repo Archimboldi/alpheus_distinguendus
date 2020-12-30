@@ -1,7 +1,7 @@
 import './App.css';
 import 'antd/dist/antd.css';
 import React from 'react';
-import { Layout, Menu, Image } from 'antd';
+import { Layout, Menu, Image, Button } from 'antd';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -13,7 +13,7 @@ import {
   UserOutlined,
   AppstoreAddOutlined
 } from '@ant-design/icons';
-import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Switch, Route, Link, Redirect } from 'react-router-dom';
 import Shebei from './Pages/Shebei';
 import Xiangmu from './Pages/Xiangmu';
 import Yuangong from './Pages/Yuangong';
@@ -21,6 +21,8 @@ import Haocai from './Pages/Haocai';
 import Kehu from './Pages/Kehu';
 import Rizhi from './Pages/Rizhi';
 import User from './Pages/User';
+import Login from './Login';
+import MyRoute from './Pages/MyRoute';
 
 const { Header, Sider, Content } = Layout;
 class App extends React.Component {
@@ -85,6 +87,8 @@ class App extends React.Component {
                 className: 'trigger',
                 onClick: this.toggle,
               })}
+              <Button onClick={()=>{sessionStorage.removeItem('token');
+                window.location.href = "/login";}} style={{float:'right',margin:'17px'}}>退出</Button>
             </Header>
             <Content
               className="site-layout-background"
@@ -95,28 +99,30 @@ class App extends React.Component {
               }}
             >
             <Switch id="div2">
-              <Route path='/' component={Xiangmu} exact></Route>
-              <Route path="/xiangmu" key="1">
+              <Route path='/login' component={Login}></Route>
+              <MyRoute path="/" component={Xiangmu} exact></MyRoute>
+              <MyRoute path="/xiangmu">
                 <Xiangmu />
-              </Route>
-              <Route path="/shebei" key="2">
+              </MyRoute>
+              <MyRoute path="/shebei" key="2">
                 <Shebei />
-              </Route>
-              <Route path="/kehu" key="3">
+              </MyRoute>
+              <MyRoute path="/kehu" key="3">
                 <Kehu />
-              </Route>
-              <Route path="/yuangong" key="4">
+              </MyRoute>
+              <MyRoute path="/yuangong" key="4">
                 <Yuangong />
-              </Route>
-              <Route path="/haocai" key="5">
+              </MyRoute>
+              <MyRoute path="/haocai" key="5">
                 <Haocai />
-              </Route>
-              <Route path="/rizhi" key="6">
+              </MyRoute>
+              <MyRoute path="/rizhi" key="6">
                 <Rizhi />
-              </Route>
-              <Route path="/user" key="7">
+              </MyRoute>
+              <MyRoute path="/user" key="7">
                 <User />
-              </Route>
+              </MyRoute>
+              <Redirect to="/login"></Redirect>
             </Switch>
             
         
