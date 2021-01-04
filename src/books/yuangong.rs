@@ -109,36 +109,66 @@ pub struct YgQuery;
 
 #[Object]
 impl YgQuery {
-    async fn yuangongs(&self, ctx: &Context<'_>, ygxm: String) -> Result<Vec<Yuangong>> {
+    async fn yuangongs(&self, ctx: &Context<'_>, ygxm: String, xmid: i32) -> Result<Vec<Yuangong>> {
         let pool = ctx.data_unchecked::<PgPool>();
         let cc = format!("%{}%", ygxm);
-        let recs = sqlx::query!(
-            r#"
-                SELECT yuangong.id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh,xiangmu.xmmc
-                    FROM yuangong left join xiangmu on xiangmu.id=yuangong.szxm WHERE ygxm Like $1
-            "#,
-            cc
-        )
-        .fetch_all(pool)
-        .await?;
-        let mut books: Vec<Yuangong> = vec![];
-        for rec in recs {
-            books.push(Yuangong{
-                id: rec.id,
-                ygxm: rec.ygxm,
-                ssbm: rec.ssbm,
-                szxm: rec.szxm,
-                xmmc: rec.xmmc,
-                ygjn: rec.ygjn,
-                rzsj: rec.rzsj,
-                rgzl: rec.rgzl,
-                ygzl: rec.ygzl,
-                ljgzl: rec.ljgzl,
-                ygbz: rec.ygbz,
-                sfzh: rec.sfzh
-            });
+        if xmid<0 {
+            let recs = sqlx::query!(
+                r#"
+                    SELECT yuangong.id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh,xiangmu.xmmc
+                        FROM yuangong left join xiangmu on xiangmu.id=yuangong.szxm WHERE ygxm Like $1
+                "#,
+                cc
+            )
+            .fetch_all(pool)
+            .await?;
+            let mut books: Vec<Yuangong> = vec![];
+            for rec in recs {
+                books.push(Yuangong{
+                    id: rec.id,
+                    ygxm: rec.ygxm,
+                    ssbm: rec.ssbm,
+                    szxm: rec.szxm,
+                    xmmc: rec.xmmc,
+                    ygjn: rec.ygjn,
+                    rzsj: rec.rzsj,
+                    rgzl: rec.rgzl,
+                    ygzl: rec.ygzl,
+                    ljgzl: rec.ljgzl,
+                    ygbz: rec.ygbz,
+                    sfzh: rec.sfzh
+                });
+            }
+            Ok(books)
+        }else{
+            let recs = sqlx::query!(
+                r#"
+                    SELECT yuangong.id,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh,xiangmu.xmmc
+                        FROM yuangong left join xiangmu on xiangmu.id=yuangong.szxm WHERE szxm = $1 AND ygxm Like $2
+                "#,
+                xmid,cc
+            )
+            .fetch_all(pool)
+            .await?;
+            let mut books: Vec<Yuangong> = vec![];
+            for rec in recs {
+                books.push(Yuangong{
+                    id: rec.id,
+                    ygxm: rec.ygxm,
+                    ssbm: rec.ssbm,
+                    szxm: rec.szxm,
+                    xmmc: rec.xmmc,
+                    ygjn: rec.ygjn,
+                    rzsj: rec.rzsj,
+                    rgzl: rec.rgzl,
+                    ygzl: rec.ygzl,
+                    ljgzl: rec.ljgzl,
+                    ygbz: rec.ygbz,
+                    sfzh: rec.sfzh
+                });
+            }
+            Ok(books)
         }
-        Ok(books)
     }
     async fn yuangong(
         &self,

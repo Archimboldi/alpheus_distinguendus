@@ -5,8 +5,8 @@ const { Search } = Input;
 const { Option } = Select;
 
 const FIND_YUANGONG = gql`
-  query FindYuangong($ygxm:String!){
-    yuangongs(ygxm:$ygxm){
+  query FindYuangong($ygxm:String!, $xmid:Int!){
+    yuangongs(ygxm:$ygxm,xmid:$xmid){
       id,ygxm,ssbm,szxm,xmmc,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
     }
   }
@@ -125,7 +125,7 @@ const AddForm = React.forwardRef((props, ref) => (
     </Form>
 ));
 
-function AllTable() {
+function AllTable(props) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
@@ -196,7 +196,7 @@ function AllTable() {
   }
   const [keyword, SetKeyword] = useState("");
   const {loading, error, data, refetch, networkStatus} = useQuery(FIND_YUANGONG,{
-    variables:{"ygxm": keyword}
+    variables:{"ygxm": keyword, "xmid": props.xmid}
   });
   const columns = [
     {
@@ -284,12 +284,17 @@ function AllTable() {
   );
 }
 
-function Yuangong() {
-  return(
-    <div>
-      <AllTable />
-    </div>
-  )
+class Yuangong extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  render(){
+    return(
+      <div>
+        <AllTable xmid={parseInt(this.props.match.params.id)}/>
+      </div>
+    )
+  }
 }
 
 export default Yuangong;

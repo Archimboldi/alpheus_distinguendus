@@ -103,35 +103,65 @@ pub struct SbQuery;
 
 #[Object]
 impl SbQuery {
-    async fn shebeis(&self, ctx: &Context<'_>,sbxh:String) -> Result<Vec<Shebei_>> {
+    async fn shebeis(&self, ctx: &Context<'_>,sbxh:String,xmid:i32) -> Result<Vec<Shebei_>> {
         let pool = ctx.data_unchecked::<PgPool>();
         let cc = format!("%{}%", sbxh);
-        let recs = sqlx::query!(
-            r#"
-            SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
-            FROM shebei left join xiangmu on xiangmu.id=shebei.szxm WHERE sbxh like $1;
-            "#,
-            cc
-        )
-        .fetch_all(pool)
-        .await?;
-        let mut books: Vec<Shebei_> = vec![];
-        for rec in recs {
-            books.push(Shebei_{
-                id: rec.id,
-                zcbh: rec.zcbh,
-                szbm: rec.szbm,
-                szxm: rec.szxm,
-                xmmc: rec.xmmc,
-                sblx: rec.sblx,
-                sbpp: rec.sbpp,
-                sbxh: rec.sbxh,
-                xlh: rec.xlh,
-                smcs: rec.smcs,
-                sbbz: rec.sbbz
-            });
+        if xmid<0 {
+            let recs = sqlx::query!(
+                r#"
+                SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
+                FROM shebei left join xiangmu on xiangmu.id=shebei.szxm WHERE sbxh like $1;
+                "#,
+                cc
+            )
+            .fetch_all(pool)
+            .await?;
+            let mut books: Vec<Shebei_> = vec![];
+            for rec in recs {
+                books.push(Shebei_{
+                    id: rec.id,
+                    zcbh: rec.zcbh,
+                    szbm: rec.szbm,
+                    szxm: rec.szxm,
+                    xmmc: if rec.szxm.unwrap()==0{Some("库房".to_string())}else{rec.xmmc},
+                    sblx: rec.sblx,
+                    sbpp: rec.sbpp,
+                    sbxh: rec.sbxh,
+                    xlh: rec.xlh,
+                    smcs: rec.smcs,
+                    sbbz: rec.sbbz
+                });
+            }
+            Ok(books)
+        }else{
+            let recs = sqlx::query!(
+                r#"
+                SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
+                FROM shebei left join xiangmu on xiangmu.id=shebei.szxm 
+                WHERE szxm = $1 AND sbxh like $2;
+                "#,
+                xmid,cc
+            )
+            .fetch_all(pool)
+            .await?;
+            let mut books: Vec<Shebei_> = vec![];
+            for rec in recs {
+                books.push(Shebei_{
+                    id: rec.id,
+                    zcbh: rec.zcbh,
+                    szbm: rec.szbm,
+                    szxm: rec.szxm,
+                    xmmc: if rec.szxm.unwrap()==0{Some("库房".to_string())}else{rec.xmmc},
+                    sblx: rec.sblx,
+                    sbpp: rec.sbpp,
+                    sbxh: rec.sbxh,
+                    xlh: rec.xlh,
+                    smcs: rec.smcs,
+                    sbbz: rec.sbbz
+                });
+            }
+            Ok(books)
         }
-        Ok(books)
     }
     async fn shebei(
         &self,

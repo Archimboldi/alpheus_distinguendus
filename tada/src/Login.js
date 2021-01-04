@@ -1,35 +1,42 @@
 import React from 'react';
-import { Form, Input, Button, Alert } from 'antd';
-import { gql, useMutation } from '@apollo/client';
+import { Form, Input, Button, message } from 'antd';
+import { gql } from '@apollo/client';
+import client from './index.js';
 
 const LOGIN = gql`
   mutation Login($usrn:String!,$upsd:String!){
     user(usrn:$usrn,upsd:$upsd){
-      id,usrn,upsd,power
+      id,usrn,power
     }
   }
 `;
 
 const layout = {
   labelCol: { span: 8 },
-  wrapperCol: { span: 8 },
+  wrapperCol: { span: 16 },
 };
-
-const Login = () => {
-  const [mutate, {data}] = useMutation(LOGIN);
+const tailLayout = {
+  wrapperCol: {
+    offset: 5,
+    span: 16,
+  },
+};
+export default function Login() {
   const onFinish = values => {
-    mutate({
+    client.mutate({
+      mutation: LOGIN,
       variables: {"usrn": values.username,"upsd": values.password}
-    });
-
-    console.log(data)
-
-    // if (lda.id > -1){
-    //   sessionStorage.setItem('token', lda.power);
-    //   window.location.href="/";
-    // }else{
-    //   Alert("用户名或密码错误！");
-    // }
+    }).then((res)=>{
+      var user = res.data.user;
+      if (user.id > -1){
+        localStorage.setItem('username', user.usrn);
+        sessionStorage.setItem('token', user.power);
+        window.location.href="/";
+      }else{
+        message.error("用户名或密码错误！");
+      }
+    })
+   
    
   };
   return (
@@ -57,7 +64,7 @@ const Login = () => {
         <Input.Password />
       </Form.Item>
 
-      <Form.Item>
+      <Form.Item {...tailLayout}>
         <Button type="primary" htmlType="submit">
           登录
         </Button>
@@ -65,5 +72,3 @@ const Login = () => {
     </Form>
   );
 };
-
-export default Login;

@@ -1,12 +1,12 @@
-import React, {useState} from 'react';
+import React, {useState, useRef, useImperativeHandle} from 'react';
 import { Table, Button, Form, Modal, Input, Select } from 'antd';
 import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
 const { Search } = Input;
 const { Option } = Select;
 
 const FIND_SHEBEI = gql`
-  query FindShebei($sbxh:String!){
-    shebeis(sbxh:$sbxh){
+  query FindShebei($sbxh:String!,$xmid:Int!){
+    shebeis(sbxh:$sbxh,xmid:$xmid){
       id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh,xmmc
     }
   }
@@ -70,7 +70,7 @@ const AddForm = React.forwardRef((props, ref) => (
       <Select onChange={(_,value)=>{ref.current.setFieldsValue({
           szxm: value.key
         })}}>
-          {props.xmdata.xiangmus.map(xm => (
+          {props.xmdata.map(xm => (
             <Option key={xm.id} value={xm.xmmc}>{xm.xmmc}</Option>
           ))}
       </Select>
@@ -121,13 +121,15 @@ const AddForm = React.forwardRef((props, ref) => (
     </Form>
 ));
 
-function AllTable() {
+const AllTable = React.forwardRef((props, fref)=> {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
   const { data:xmdata, refetch:xmfetch } = useQuery(FIND_XIANGMU,{
     variables:{"xmmc": ""}
   });
+  var xms = [{id:0,xmmc:"库房"}];
+  xms.push(...xmdata.xiangmus);
   const [addShebei] = useMutation(ADD_SHEBEI, {
     update(cache, { data: { createShebei } }) {
       cache.modify({
@@ -161,6 +163,7 @@ function AllTable() {
   const [updateShebei] = useMutation(UPDATE_SHEBEI);
   const showModal = () => {
     xmfetch();
+   
     setRowdata({id:0,zcbh:'',szbm:'',szxm:0,xmmc:'',sblx:'',sbpp:'',sbxh:'',xlh:'',smcs:'',sbbz:''});
     setIsModalVisible(true);
   };
@@ -192,7 +195,7 @@ function AllTable() {
   }
   const [keyword, SetKeyword] = useState("");
   const {loading, error, data, refetch, networkStatus} = useQuery(FIND_SHEBEI,{
-    variables:{"sbxh": keyword}
+    variables:{"sbxh": keyword, "xmid": props.xmid}
   });
   const columns = [
     {
@@ -261,11 +264,12 @@ function AllTable() {
         placeholder="请输入设备型号"
         allowClear
         onSearch={onSearch}
+        ref={fref}
         style={{ width: 270, margin: '0 10px', float:'right' }}
       />
       <Modal title="设备详情" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
-        <AddForm row={rowdata} ref={ref} xmdata={xmdata}/>
+        <AddForm row={rowdata} ref={ref} xmdata={xms}/>
       </Modal>
       <Table
         dataSource={data.shebeis}
@@ -274,14 +278,30 @@ function AllTable() {
       />
     </div>
   );
-}
+});
 
-function Shebei() {
-  return(
-    <div>
-      <AllTable />
-    </div>
-  )
+class Shebei extends React.Component {
+  constructor(props) {
+    super(props);
+    const fRef = React.createRef();
+    this.state = {
+      fRef: fRef
+    }
+  }
+  
+  componentDidUpdate(prevProps) {
+    if (this.props.match.params.id !== prevProps.match.params.id) {
+      console.log(
+      this.state.fRef.current);
+    }
+  }
+  render(){
+    return(
+      <div>
+        <AllTable xmid={parseInt(this.props.match.params.id)} ref={this.state.fRef} />
+      </div>
+    )
+  }
 }
 
 export default Shebei;

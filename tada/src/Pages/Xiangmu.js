@@ -343,6 +343,11 @@ function AllTable() {
           <p key={y.id}>{y.ygxm}&nbsp;&nbsp;&nbsp;{y.ygjn}</p>
         ))}
         <br />
+        <h3>耗材</h3>
+        {pbdata.yuangong.map(y => (
+          <p key={y.id}>{y.ygxm}&nbsp;&nbsp;&nbsp;{y.ygjn}</p>
+        ))}
+        <br />
         <h3>客户</h3>
         {pbdata.kehu.map(k => (
           <p key={k.id}>{k.khxm}&nbsp;&nbsp;&nbsp;{k.khlx}</p>

@@ -2,6 +2,7 @@ import './App.css';
 import 'antd/dist/antd.css';
 import React from 'react';
 import { Layout, Menu, Image, Button } from 'antd';
+import { gql, useQuery } from '@apollo/client';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -23,12 +24,25 @@ import Rizhi from './Pages/Rizhi';
 import User from './Pages/User';
 import Login from './Login';
 import MyRoute from './Pages/MyRoute';
-
+const { SubMenu } = Menu;
+const FIND_XIANGMU = gql`
+  query FindXiang($xmmc:String!){
+    xiangmus(xmmc: $xmmc) {
+      id,xmmc,xmbh
+    }
+  }
+`;
 const { Header, Sider, Content } = Layout;
-class App extends React.Component {
-  state = {
-    collapsed: false,
-  };
+class Side extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      collapsed: false,
+      xms: props.xmdata.xiangmus,
+      username: props.username
+    };
+
+  }
   toggle = () => {
     this.setState({
       collapsed: !this.state.collapsed,
@@ -48,22 +62,54 @@ class App extends React.Component {
                   项目
                 </Link>
               </Menu.Item>
-              <Menu.Item key="2" icon={<BoxPlotFilled />}>
-                <Link to="/shebei" style={{color:"#7a7a7a"}}>
-                  设备
-                </Link>
-              </Menu.Item>
-              <Menu.Item key="4" icon={<TeamOutlined />}>
-                <Link to="/yuangong" style={{color:"#7a7a7a"}}>
-                  员工
-                </Link>
-              </Menu.Item>
-              <Menu.Item key="5" icon={<AppstoreAddOutlined />}>
-                <Link to="/haocai" style={{color:"#7a7a7a"}}>
-                  耗材
-                </Link>
-              </Menu.Item>
-              <Menu.Item key="3" icon={<ContactsFilled />}>
+              <SubMenu key="2" icon={<BoxPlotFilled />} title="设备">
+                <Menu.Item key="-1">
+                  <Link to={'/shebei/-1'} style={{color:"#7a7a7a"}}>
+                    全部
+                  </Link>
+                </Menu.Item>
+                <Menu.Item key="00">
+                  <Link to={'/shebei/0'} style={{color:"#7a7a7a"}}>
+                    库房
+                  </Link>
+                </Menu.Item>
+                {this.state.xms.map(xm=>(
+                  <Menu.Item key={'s'+xm.xmbh}>
+                      <Link to={'/shebei/'+xm.id} style={{color:"#7a7a7a"}}>
+                        {xm.xmmc}
+                      </Link>
+                  </Menu.Item>
+                ))}
+              </SubMenu>
+              <SubMenu key="3" icon={<TeamOutlined />} title="员工">
+                <Menu.Item key="-2">
+                  <Link to={'/yuangong/-1'} style={{color:"#7a7a7a"}}>
+                    全部
+                  </Link>
+                </Menu.Item>
+                {this.state.xms.map(xm=>(
+                  <Menu.Item key={xm.xmbh}>
+                      <Link to={'/yuangong/'+xm.id} style={{color:"#7a7a7a"}}>
+                        {xm.xmmc}
+                      </Link>
+                  </Menu.Item>
+                ))} 
+              </SubMenu>
+              <SubMenu key="4" icon={<AppstoreAddOutlined />} title="耗材">
+                <Menu.Item key="000">
+                  <Link to={'/haocai/0'} style={{color:"#7a7a7a"}}>
+                    库房
+                  </Link>
+                </Menu.Item>
+                {this.state.xms.map(xm=>(
+                  <Menu.Item key={'h'+xm.xmbh}>
+                      <Link to={'/haocai/'+xm.id} style={{color:"#7a7a7a"}}>
+                        {xm.xmmc}
+                      </Link>
+                  </Menu.Item>
+                ))}
+              </SubMenu>
+              <Menu.Item key="5" icon={<ContactsFilled />}>
                 <Link to="/kehu" style={{color:"#7a7a7a"}}>
                   客户
                 </Link>
@@ -87,8 +133,8 @@ class App extends React.Component {
                 className: 'trigger',
                 onClick: this.toggle,
               })}
-              <Button onClick={()=>{sessionStorage.removeItem('token');
-                window.location.href = "/login";}} style={{float:'right',margin:'17px'}}>退出</Button>
+              <Button onClick={()=>{sessionStorage.removeItem('token');localStorage.removeItem('username');
+                window.location.href = "/login";}} style={{float:'right',margin:'17px'}}>{this.state.username} 退出</Button>
             </Header>
             <Content
               className="site-layout-background"
@@ -101,37 +147,33 @@ class App extends React.Component {
             <Switch id="div2">
               <Route path='/login' component={Login}></Route>
               <MyRoute path="/" component={Xiangmu} exact></MyRoute>
-              <MyRoute path="/xiangmu">
-                <Xiangmu />
-              </MyRoute>
-              <MyRoute path="/shebei" key="2">
-                <Shebei />
-              </MyRoute>
-              <MyRoute path="/kehu" key="3">
-                <Kehu />
-              </MyRoute>
-              <MyRoute path="/yuangong" key="4">
-                <Yuangong />
-              </MyRoute>
-              <MyRoute path="/haocai" key="5">
-                <Haocai />
-              </MyRoute>
-              <MyRoute path="/rizhi" key="6">
-                <Rizhi />
-              </MyRoute>
-              <MyRoute path="/user" key="7">
-                <User />
-              </MyRoute>
+              <MyRoute path="/xiangmu" key="1" component={Xiangmu} />
+              <MyRoute path="/shebei/:id" key="2" component={Shebei} />
+              <MyRoute path="/yuangong/:id" key="3" component={Yuangong} />
+              <MyRoute path="/haocai/:id" key="4" component={Haocai} />
+              <MyRoute path="/kehu" key="5" component={Kehu} />
+              <MyRoute path="/rizhi" key="6" component={Rizhi} />
+              <MyRoute path="/user" key="7" component={User} />
               <Redirect to="/login"></Redirect>
             </Switch>
-            
-        
             </Content>
           </Layout>
         </Router>
       </Layout>
     )
   }
+}
+
+function App(){
+  const username = localStorage.getItem('username');
+  const { data:xmdata, loading, error } = useQuery(FIND_XIANGMU,{
+    variables:{"xmmc": ""}
+  });
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
+  return(
+    <Side xmdata={xmdata} username={username}/>
+  )
 }
 
 export default App;

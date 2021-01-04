@@ -217,12 +217,18 @@ function AllTable() {
   );
 }
 
-function Haocai() {
-  return(
-    <div>
-      <AllTable />
-    </div>
-  )
+class Haocai extends React.Component {
+  constructor(props) {
+    super(props);
+    console.log(this.props.match.params);
+  }
+  render(){
+    return(
+      <div>
+        <AllTable />
+      </div>
+    )
+  }
 }
 
 export default Haocai;
