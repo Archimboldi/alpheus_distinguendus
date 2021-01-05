@@ -1,4 +1,4 @@
-import React, {useState, useRef, useImperativeHandle} from 'react';
+import React, {useState} from 'react';
 import { Table, Button, Form, Modal, Input, Select } from 'antd';
 import { gql, useQuery, useMutation, NetworkStatus } from '@apollo/client';
 const { Search } = Input;
@@ -128,6 +128,7 @@ const AllTable = React.forwardRef((props, fref)=> {
   const { data:xmdata, refetch:xmfetch } = useQuery(FIND_XIANGMU,{
     variables:{"xmmc": ""}
   });
+ 
   var xms = [{id:0,xmmc:"库房"}];
   xms.push(...xmdata.xiangmus);
   const [addShebei] = useMutation(ADD_SHEBEI, {
@@ -193,10 +194,12 @@ const AllTable = React.forwardRef((props, fref)=> {
     SetKeyword(val);
     refetch();
   }
+
   const [keyword, SetKeyword] = useState("");
   const {loading, error, data, refetch, networkStatus} = useQuery(FIND_SHEBEI,{
     variables:{"sbxh": keyword, "xmid": props.xmid}
-  });
+  }, { fetchPolicy: 'network-only' });
+  
   const columns = [
     {
       title: '资产编号',
@@ -246,9 +249,11 @@ const AllTable = React.forwardRef((props, fref)=> {
         ) : null,
     },
   ];
+  
   if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error :(</p>;
+    
   return (
     <div>
       <Button
@@ -283,22 +288,20 @@ const AllTable = React.forwardRef((props, fref)=> {
 class Shebei extends React.Component {
   constructor(props) {
     super(props);
-    const fRef = React.createRef();
-    this.state = {
-      fRef: fRef
-    }
+    this.textInput = React.createRef();
   }
-  
   componentDidUpdate(prevProps) {
-    if (this.props.match.params.id !== prevProps.match.params.id) {
-      console.log(
-      this.state.fRef.current);
+    if (prevProps.match.params.id !== this.props.match.params.id) {
+      if (this.textInput.current!==null){
+        this.textInput.current.props.onPressEnter()
+      }
     }
   }
+
   render(){
     return(
       <div>
-        <AllTable xmid={parseInt(this.props.match.params.id)} ref={this.state.fRef} />
+        <AllTable xmid={parseInt(this.props.match.params.id)} ref={this.textInput} />
       </div>
     )
   }

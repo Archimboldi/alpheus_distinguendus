@@ -85,7 +85,7 @@ const AddForm = React.forwardRef((props, ref) => (
     </Form>
 ));
 
-function AllTable() {
+const AllTable = React.forwardRef((props, fref) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
@@ -180,6 +180,7 @@ function AllTable() {
         data.haocais.length >= 1 ? (
           <div>
             <Button type="link" onClick={()=>{editModal(record)}}>采购</Button>
+            <Button type="link" onClick={()=>{editModal(record)}}>领用</Button>
           </div>
         ) : null,
     },
@@ -202,6 +203,7 @@ function AllTable() {
         placeholder="请输入耗材名称"
         allowClear
         onSearch={onSearch}
+        ref={fref}
         style={{ width: 270, margin: '0 10px', float:'right' }}
       />
       <Modal title="耗材详情" visible={isModalVisible} onOk={handleOk}
@@ -215,17 +217,24 @@ function AllTable() {
       />
     </div>
   );
-}
+});
 
 class Haocai extends React.Component {
   constructor(props) {
     super(props);
-    console.log(this.props.match.params);
+    this.textInput = React.createRef();
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
+      if (this.textInput.current!==null){
+        this.textInput.current.props.onPressEnter()
+      }
+    }
   }
   render(){
     return(
       <div>
-        <AllTable />
+        <AllTable xmid={parseInt(this.props.match.params.id)} ref={this.textInput} />
       </div>
     )
   }

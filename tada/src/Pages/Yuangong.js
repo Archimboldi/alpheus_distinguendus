@@ -88,26 +88,34 @@ const AddForm = React.forwardRef((props, ref) => (
         <Input />
       </Form.Item>
       <Form.Item
-        label="日工作量"
+        label="今日整理量"
+        name="ljgzl"
+        rules={[{ required: true }]}
+      >
+        <Input />
+      </Form.Item>
+      <Form.Item
+        label="今日录入量"
         name="rgzl"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="月工作量"
+        label="今日扫描量"
         name="ygzl"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
       <Form.Item
-        label="累计工作量"
+        label="今日处理量"
         name="ljgzl"
         rules={[{ required: true }]}
       >
         <Input />
       </Form.Item>
+      
       <Form.Item
         label="员工备注"
         name="ygbz"
@@ -125,7 +133,7 @@ const AddForm = React.forwardRef((props, ref) => (
     </Form>
 ));
 
-function AllTable(props) {
+const AllTable = React.forwardRef((props, fref) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rowdata, setRowdata] = useState({id:0});
   const ref = React.createRef();
@@ -202,7 +210,6 @@ function AllTable(props) {
     {
       title: '员工姓名',
       dataIndex: 'ygxm',
-      width: '14%',
     },
     {
       title: '所属部门',
@@ -221,15 +228,19 @@ function AllTable(props) {
       dataIndex: 'rzsj',
     },
     {
-      title: '日工作量',
+      title: '今日整理量',
       dataIndex: 'rgzl',
     },
     {
-      title: '月工作量',
+      title: '今日录入量',
       dataIndex: 'ygzl',
     },
     {
-      title: '累计工作量',
+      title: '今日扫描量',
+      dataIndex: 'ljgzl',
+    },
+    {
+      title: '今日处理量',
       dataIndex: 'ljgzl',
     },
     {
@@ -265,10 +276,21 @@ function AllTable(props) {
       >
         新增
       </Button>
+      &nbsp;&nbsp;&nbsp;
+      <Button
+        type="primary"
+        style={{
+          marginBottom: 16,
+        }}
+        onClick={showModal}
+      >
+        提交工作量
+      </Button>
       <Search
         placeholder="请输入员工姓名"
         allowClear
         onSearch={onSearch}
+        ref={fref}
         style={{ width: 270, margin: '0 10px', float:'right' }}
       />
       <Modal title="员工信息" visible={isModalVisible} onOk={handleOk}
@@ -282,16 +304,24 @@ function AllTable(props) {
       />
     </div>
   );
-}
+});
 
 class Yuangong extends React.Component {
   constructor(props) {
     super(props);
+    this.textInput = React.createRef();
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
+      if (this.textInput.current!==null){
+        this.textInput.current.props.onPressEnter()
+      }
+    }
   }
   render(){
     return(
       <div>
-        <AllTable xmid={parseInt(this.props.match.params.id)}/>
+        <AllTable xmid={parseInt(this.props.match.params.id)} ref={this.textInput} />
       </div>
     )
   }
