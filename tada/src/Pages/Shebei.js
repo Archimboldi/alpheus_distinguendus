@@ -5,8 +5,8 @@ const { Search } = Input;
 const { Option } = Select;
 
 const FIND_SHEBEI = gql`
-  query FindShebei($sbxh:String!,$xmid:Int!){
-    shebeis(sbxh:$sbxh,xmid:$xmid){
+  query FindShebei($sbxh:String!,$sblx:String!){
+    shebeis(sbxh:$sbxh,sblx:$sblx){
       id,zcbh,szbm,szxm,sblx,sbpp,sbxh,smcs,sbbz,xlh,xmmc
     }
   }
@@ -164,7 +164,6 @@ const AllTable = React.forwardRef((props, fref)=> {
   const [updateShebei] = useMutation(UPDATE_SHEBEI);
   const showModal = () => {
     xmfetch();
-   
     setRowdata({id:0,zcbh:'',szbm:'',szxm:0,xmmc:'',sblx:'',sbpp:'',sbxh:'',xlh:'',smcs:'',sbbz:''});
     setIsModalVisible(true);
   };
@@ -194,12 +193,12 @@ const AllTable = React.forwardRef((props, fref)=> {
     SetKeyword(val);
     refetch();
   }
-
+  
   const [keyword, SetKeyword] = useState("");
   const {loading, error, data, refetch, networkStatus} = useQuery(FIND_SHEBEI,{
-    variables:{"sbxh": keyword, "xmid": props.xmid}
+    variables:{"sbxh": keyword, "sblx": props.sblx}
   }, { fetchPolicy: 'network-only' });
-  
+
   const columns = [
     {
       title: '资产编号',
@@ -253,7 +252,7 @@ const AllTable = React.forwardRef((props, fref)=> {
   if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error :(</p>;
-    
+
   return (
     <div>
       <Button
@@ -265,13 +264,15 @@ const AllTable = React.forwardRef((props, fref)=> {
       >
         新增
       </Button>
+      <div style={{float:'right'}}>
       <Search
-        placeholder="请输入设备型号"
+        placeholder="请输入关键字"
         allowClear
         onSearch={onSearch}
         ref={fref}
         style={{ width: 270, margin: '0 10px', float:'right' }}
       />
+      </div>
       <Modal title="设备详情" visible={isModalVisible} onOk={handleOk}
        onCancel={handleCancel} destroyOnClose>
         <AddForm row={rowdata} ref={ref} xmdata={xms}/>
@@ -301,7 +302,7 @@ class Shebei extends React.Component {
   render(){
     return(
       <div>
-        <AllTable xmid={parseInt(this.props.match.params.id)} ref={this.textInput} />
+        <AllTable sblx={this.props.match.params.id} ref={this.textInput} />
       </div>
     )
   }

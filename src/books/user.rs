@@ -1,5 +1,5 @@
 use async_graphql::{Context, Object, Result};
-
+use sqlx::Done;
 use sqlx::postgres::PgPool;
 
 #[derive(Clone)]
@@ -91,7 +91,7 @@ impl UMutation {
     }
     async fn create_user(&self, ctx: &Context<'_>, usrn: Option<String>, upsd: Option<String>, power: Option<String>)
      -> Result<User> {
-        let mut pool = ctx.data_unchecked::<PgPool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO users(usrn,upsd,power)
@@ -99,8 +99,9 @@ impl UMutation {
             "#,
             usrn,upsd,power
         )
-        .execute(&mut pool)
-        .await?;
+        .execute(pool)
+        .await?
+        .rows_affected();
         if done == 1 {
             let rec = sqlx::query!(
                 r#"
@@ -137,7 +138,8 @@ impl UMutation {
             usrn,upsd,power,id
         )
         .execute(pool)
-        .await?;
+        .await?
+        .rows_affected();
         if done == 1 {
             let nur = User {
                 id: id,

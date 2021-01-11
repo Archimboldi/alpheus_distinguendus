@@ -145,7 +145,7 @@ const AllTable = React.forwardRef((props, fref) => {
   }
   const [keyword, SetKeyword] = useState("");
   const {loading, error, data, refetch, networkStatus} = useQuery(FIND_HAOCAI,{
-    variables:{"hcmc": keyword}
+    variables:{"hcmc": keyword, "xmid": props.xmid}
   });
   const columns = [
     {
@@ -166,12 +166,12 @@ const AllTable = React.forwardRef((props, fref) => {
       dataIndex: 'lj',
     },
     {
-      title: '耗材备注',
-      dataIndex: 'hcbz',
-    },
-    {
       title: '耗材单价',
       dataIndex: 'hcdj',
+    },
+    {
+      title: '耗材备注',
+      dataIndex: 'hcbz',
     },
     {
       title: '操作',

@@ -1,5 +1,6 @@
 use async_graphql::{Context, Object, Result};
-use sqlx::PgPool;
+use sqlx::postgres::PgPool;
+use sqlx::Done;
 
 #[derive(Clone)]
 pub struct Kehu {
@@ -152,7 +153,7 @@ pub struct KhMutation;
 impl KhMutation {
     async fn create_kehu(&self, ctx: &Context<'_>, khbh: Option<String>, khxm: String, ssxm: Option<i32>,xmmc: Option<String>, khxb: Option<String>,
      khgx: Option<String>, khbz: Option<String>, khlx: Option<String>) -> Result<Kehu> {
-        let mut pool = ctx.data_unchecked::<PgPool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO kehu(khbh,khxm,ssxm,khxb,khgx,khbz,khlx)
@@ -160,8 +161,9 @@ impl KhMutation {
             "#,
             khbh,khxm,ssxm,khxb,khgx,khbz,khlx
         )
-        .execute(&mut pool)
-        .await?;
+        .execute(pool)
+        .await?
+        .rows_affected();
         if done == 1 {
             let rec = sqlx::query!(
                 r#"
@@ -232,7 +234,8 @@ impl KhMutation {
             khbh,khxm,ssxm,khxb,khgx,khbz,khlx,id
         )
         .execute(pool)
-        .await?;
+        .await?
+        .rows_affected();
         if done == 1 {
             let nkh = Kehu{
                 id: id,

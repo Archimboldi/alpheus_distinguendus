@@ -43,21 +43,21 @@ async fn index_ws(
 async fn main() -> Result<()> {
     dotenv().ok();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is not set.");
-    let db_pool = PgPool::new(&database_url).await?;
+    let db_pool = PgPool::connect(&database_url).await?;
     let queryroot = QueryRoot(xiangmu::XmQuery, shebei::SbQuery, kehu::KhQuery, yuangong::YgQuery, haocai::HcQuery, rizhi::RzQuery, user::UQuery, file::FileQuery);
     let mutationroot = Mutation(xiangmu::XmMutation, shebei::SbMutation, kehu::KhMutation, yuangong::YgMutation, haocai::HcMutation, user::UMutation, file::FileMutation);
     let schema = Schema::build(queryroot, mutationroot, EmptySubscription)
         .data(db_pool)
         .finish();
-    println!("Playground: http://localhost:8080/graphql");
+    println!("Playground: http://192.168.10.140:8080/graphql");
 
     let serv = HttpServer::new(move || {
         App::new()
             .data(schema.clone())
             .wrap(
             Cors::default()
-                .allowed_origin("http://localhost:3000")
-                .allowed_origin("http://localhost:8080")
+                .allow_any_origin()
+                .send_wildcard()
                 .allowed_header(http::header::CONTENT_TYPE)
                 .allowed_methods(vec!["GET", "POST"])
                 .max_age(3600)
@@ -72,7 +72,7 @@ async fn main() -> Result<()> {
             .service(web::resource("/graphql").guard(guard::Get()).to(index_playground))
             .service(fs::Files::new("/","./dist", ).index_file("index.html"))
     })
-    .bind("localhost:8080")?;
+    .bind("0.0.0.0:8080")?;
     serv.run().await?;
     Ok(())
 }

@@ -1,5 +1,6 @@
 use async_graphql::{Context, Object, Result};
 use sqlx::postgres::PgPool;
+use sqlx::Done;
 
 #[derive(Clone)]
 pub struct Yuangong {
@@ -212,7 +213,7 @@ pub struct YgMutation;
 impl YgMutation {
     async fn create_yuangong(&self, ctx: &Context<'_>, ygxm: String, ssbm: Option<String>, szxm: Option<i32>, xmmc: Option<String>,ygjn: Option<String>,
      rzsj: Option<String>, rgzl: Option<String>, ygzl: Option<String>, ljgzl: Option<String>, ygbz: Option<String>, sfzh: String) -> Result<Yuangong> {
-        let mut pool = ctx.data_unchecked::<PgPool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO yuangong(ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh)
@@ -220,8 +221,9 @@ impl YgMutation {
             "#,
             ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,sfzh
         )
-        .execute(&mut pool)
-        .await?;
+        .execute(pool)
+        .await?
+        .rows_affected();
         if done == 1 {
             let rec = sqlx::query!(
                 r#"
@@ -298,7 +300,8 @@ impl YgMutation {
             sfzh,ygxm,ssbm,szxm,ygjn,rzsj,rgzl,ygzl,ljgzl,ygbz,id
         )
         .execute(pool)
-        .await?;
+        .await?
+        .rows_affected();
         if done == 1 {
             let nyg = Yuangong{
                 id: id,

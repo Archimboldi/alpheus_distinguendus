@@ -1,5 +1,6 @@
 use async_graphql::{Context, Object, Result};
 use sqlx::postgres::PgPool;
+use sqlx::Done;
 
 #[derive(Clone)]
 pub struct Haocai {
@@ -110,7 +111,7 @@ pub struct HcMutation;
 impl HcMutation {
     async fn create_haocai(&self, ctx: &Context<'_>, hcmc: Option<String>, gg: Option<String>, sl: Option<String>, dw: Option<String>,
      lj: Option<String>, hcbz: Option<String>, hcdj: Option<String>) -> Result<Haocai> {
-        let mut pool = ctx.data_unchecked::<PgPool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO haocai(hcmc,gg,sl,dw,lj,hcbz,hcdj)
@@ -118,8 +119,9 @@ impl HcMutation {
             "#,
             hcmc,gg,sl,dw,lj,hcbz,hcdj
         )
-        .execute(&mut pool)
-        .await?;
+        .execute(pool)
+        .await?
+        .rows_affected();
         if done == 1 {
             let rec = sqlx::query!(
                 r#"
@@ -187,7 +189,8 @@ impl HcMutation {
             hcmc,gg,sl,dw,lj,hcbz,hcdj,id
         )
         .execute(pool)
-        .await?;
+        .await?
+        .rows_affected();
         if done == 1 {
             let nhc = Haocai{
                 id: id,

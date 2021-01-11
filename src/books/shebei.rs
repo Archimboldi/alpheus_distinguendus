@@ -1,5 +1,6 @@
 use async_graphql::*;
 use sqlx::postgres::PgPool;
+use sqlx::Done;
 
 #[derive(Clone)]
 pub struct Shebei {
@@ -103,16 +104,47 @@ pub struct SbQuery;
 
 #[Object]
 impl SbQuery {
-    async fn shebeis(&self, ctx: &Context<'_>,sbxh:String,xmid:i32) -> Result<Vec<Shebei_>> {
+    async fn shebeis(&self, ctx: &Context<'_>,sbxh:String, sblx:String) -> Result<Vec<Shebei_>> {
         let pool = ctx.data_unchecked::<PgPool>();
         let cc = format!("%{}%", sbxh);
-        if xmid<0 {
+        
+        if sblx=="-1" {
             let recs = sqlx::query!(
                 r#"
                 SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
-                FROM shebei left join xiangmu on xiangmu.id=shebei.szxm WHERE sbxh like $1;
+                FROM shebei left join xiangmu on xiangmu.id=shebei.szxm WHERE xiangmu.xmmc like $1
+                 or szbm like $1 or sblx like $1 or sbpp like $1 or sbxh like $1 or xlh like $1 or sbbz like $1;
                 "#,
                 cc
+            )
+            .fetch_all(pool)
+            .await?;
+            let mut books: Vec<Shebei_> = vec![];
+            for rec in recs {
+                books.push(Shebei_{
+                    id: rec.id,
+                    zcbh: rec.zcbh,
+                    szbm: rec.szbm,
+                    szxm: rec.szxm,
+                    xmmc: if rec.szxm.unwrap()==0{Some("库房".to_string())}else{rec.xmmc},
+                    sblx: rec.sblx,
+                    sbpp: rec.sbpp,
+                    sbxh: rec.sbxh,
+                    xlh: rec.xlh,
+                    smcs: rec.smcs,
+                    sbbz: rec.sbbz
+                });
+            }
+            Ok(books)
+        }else if sblx=="0"{
+            let recs = sqlx::query!(
+                r#"
+                SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
+                FROM shebei left join xiangmu on xiangmu.id=shebei.szxm 
+                WHERE szxm = $1 AND (xiangmu.xmmc like $2 or szbm like $2
+                    or sblx like $2 or sbpp like $2 or sbxh like $2 or xlh like $2 or sbbz like $2);
+                "#,
+                0,cc
             )
             .fetch_all(pool)
             .await?;
@@ -138,9 +170,10 @@ impl SbQuery {
                 r#"
                 SELECT shebei.id,zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,xiangmu.xmmc
                 FROM shebei left join xiangmu on xiangmu.id=shebei.szxm 
-                WHERE szxm = $1 AND sbxh like $2;
+                WHERE sblx = $1 AND (xiangmu.xmmc like $2
+                or szbm like $2 or sbpp like $2 or sbxh like $2 or xlh like $2 or sbbz like $2);
                 "#,
-                xmid,cc
+                sblx,cc
             )
             .fetch_all(pool)
             .await?;
@@ -195,7 +228,32 @@ impl SbQuery {
         };
         Ok(ss)
     }
-
+    async fn sblxs(&self,
+        ctx: &Context<'_>) -> Result<Vec<Shebei>> {
+            let pool = ctx.data_unchecked::<PgPool>();
+            let recs = sqlx::query!(r#"
+                SELECT distinct sblx FROM shebei
+            "#)
+            .fetch_all(pool)
+            .await?;
+         
+            let mut ss: Vec<Shebei> = vec![];
+            for rec in recs {
+                ss.push(Shebei{
+                    id: -1,
+                    zcbh: Some("".to_string()),
+                    szbm: Some("".to_string()),
+                    szxm: Some(-1),
+                    sblx: rec.sblx,
+                    sbpp: Some("".to_string()),
+                    sbxh: Some("".to_string()),
+                    xlh: Some("".to_string()),
+                    smcs: Some("".to_string()),
+                    sbbz: Some("".to_string())
+                });
+            };
+            Ok(ss)
+        }
 }
 
 pub struct SbMutation;
@@ -204,7 +262,7 @@ pub struct SbMutation;
 impl SbMutation {
     async fn create_shebei(&self, ctx: &Context<'_>, zcbh: Option<String>, szbm: Option<String>, szxm: Option<i32>, xmmc:Option<String>,sblx: Option<String>,
      sbpp: Option<String>, sbxh: Option<String>, xlh: Option<String>, smcs: Option<String>, sbbz: Option<String>) -> Result<Shebei_> {
-        let mut pool = ctx.data_unchecked::<PgPool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO shebei (zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz)
@@ -212,8 +270,9 @@ impl SbMutation {
             "#,
             zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz
         )
-        .execute(&mut pool)
-        .await?;
+        .execute(pool)
+        .await?
+        .rows_affected();
         if done == 1 {
             let rec = sqlx::query!(
                 r#"
@@ -300,7 +359,8 @@ impl SbMutation {
             zcbh,szbm,szxm,sblx,sbpp,sbxh,xlh,smcs,sbbz,id
         )
         .execute(pool)
-        .await?;
+        .await?
+        .rows_affected();
         if done > 0 {
             let nsb = Shebei_ {
                 id: id,

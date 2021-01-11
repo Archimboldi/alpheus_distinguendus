@@ -32,6 +32,13 @@ const FIND_XIANGMU = gql`
     }
   }
 `;
+const FIND_SBLX = gql`
+  query FindSblx{
+    sblxs{
+      sblx
+    }
+  }
+`;
 const { Header, Sider, Content } = Layout;
 class Side extends React.Component {
   constructor(props) {
@@ -39,6 +46,7 @@ class Side extends React.Component {
     this.state = {
       collapsed: false,
       xms: props.xmdata.xiangmus,
+      sblxs: props.lxdata.sblxs,
       username: props.username
     };
 
@@ -73,10 +81,10 @@ class Side extends React.Component {
                     库房
                   </Link>
                 </Menu.Item>
-                {this.state.xms.map(xm=>(
-                  <Menu.Item key={'s'+xm.xmbh}>
-                      <Link to={'/shebei/'+xm.id} style={{color:"#7a7a7a"}}>
-                        {xm.xmmc}
+                {this.state.sblxs.map(lx=>(
+                  <Menu.Item key={'s'+lx.sblx}>
+                      <Link to={'/shebei/'+lx.sblx} style={{color:"#7a7a7a"}}>
+                        {lx.sblx}
                       </Link>
                   </Menu.Item>
                 ))}
@@ -134,7 +142,7 @@ class Side extends React.Component {
                 onClick: this.toggle,
               })}
               <Button onClick={()=>{sessionStorage.removeItem('token');localStorage.removeItem('username');
-                window.location.href = "/login";}} style={{float:'right',margin:'17px'}}>{this.state.username} 退出</Button>
+                window.location.href = "/#/login";}} style={{float:'right',margin:'17px'}}>{this.state.username} 退出</Button>
             </Header>
             <Content
               className="site-layout-background"
@@ -169,10 +177,11 @@ function App(){
   const { data:xmdata, loading, error } = useQuery(FIND_XIANGMU,{
     variables:{"xmmc": ""}
   });
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error :(</p>;
+  const { data:lxdata, loading:lxl, error:lxe } = useQuery(FIND_SBLX);
+  if (loading||lxl) return <p>Loading...</p>;
+  if (error||lxe) return <p>Error :(</p>;
   return(
-    <Side xmdata={xmdata} username={username}/>
+    <Side xmdata={xmdata} username={username} lxdata={lxdata}/>
   )
 }
 

@@ -1,6 +1,6 @@
 use async_graphql::{Context, Object, Result};
 use sqlx::postgres::PgPool;
-
+use sqlx::Done;
 
 #[derive(Clone)]
 pub struct Xiangmu {
@@ -109,7 +109,7 @@ impl XmMutation {
     async fn create_xiangmu(&self, ctx: &Context<'_>, xmbh: Option<String>, xmmc: Option<String>, xmfzr: Option<String>, xmlx: Option<String>,
      gclzl: Option<String>, gcllr: Option<String>, gclsm: Option<String>, gclcl: Option<String>,
       xmdd: Option<String>, xmbz: Option<String>, xmhth: Option<String>) -> Result<Xiangmu> {
-        let mut pool = ctx.data_unchecked::<PgPool>();
+        let pool = ctx.data_unchecked::<PgPool>();
         let done = sqlx::query!(
             r#"
             INSERT INTO xiangmu(xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth)
@@ -117,8 +117,9 @@ impl XmMutation {
             "#,
             xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth
         )
-        .execute(&mut pool)
-        .await?;
+        .execute(pool)
+        .await?
+        .rows_affected();
         if done == 1 {
             let rec = sqlx::query!(
                 r#"
@@ -194,7 +195,8 @@ impl XmMutation {
             xmbh,xmmc,xmfzr,xmlx,gclzl,gcllr,gclsm,gclcl,xmdd,xmbz,xmhth,id
         )
         .execute(pool)
-        .await?;
+        .await?
+        .rows_affected();
         if done == 1 {
             let nxm = Xiangmu{
                 id: id,
